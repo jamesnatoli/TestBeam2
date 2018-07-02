@@ -112,14 +112,14 @@ float anti_fiducialX[NUMCHAN][4] = {
 };
 
 float anti_fiducialY[NUMCHAN][4] = {
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70},
-  { 50, 70, 50, 70}
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70},
+  { 50, 50, 70, 70}
 };
 // Identify channels we need to use
 struct channel {
@@ -191,7 +191,8 @@ float thetas[NUMCHAN];
 // distance from wire-chamber A to plastic tiles, in [mm]
 const double z_ex = 7300;
 
-const char* slim_dir = "~/DATA/new_SLIM/";
+// Change this is you move to lxplus
+const char* slim_dir = "~/TB_Analysis_17/DATA/new_SLIM/";
 
 bool isFiducial(int tile, float x, float y);
 void fill_Rot_Array();

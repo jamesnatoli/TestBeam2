@@ -437,15 +437,6 @@ void doMaps(bool debug, const char* dir) {
       fid_line->DrawLine(fiducialX[i][3],fiducialY[i][3],
 			 fiducialX[i][2],fiducialY[i][2]);
 
-      fid_line->DrawLine( anti_fiducialX[i][0], anti_fiducialY[i][0],
-			  anti_fiducialX[i][1], anti_fiducialY[i][1]);
-      fid_line->DrawLine( anti_fiducialX[i][0], anti_fiducialY[i][0],
-			  anti_fiducialX[i][2], anti_fiducialY[i][2]);
-      fid_line->DrawLine( anti_fiducialX[i][3], anti_fiducialY[i][3],
-			  anti_fiducialX[i][1], anti_fiducialY[i][1]);
-      fid_line->DrawLine( anti_fiducialX[i][3], anti_fiducialY[i][3],
-			  anti_fiducialX[i][2], anti_fiducialY[i][2]);
-
       TLatex label;
       label.SetNDC();
       label.SetTextSize(0.05);
@@ -468,7 +459,7 @@ void doMaps(bool debug, const char* dir) {
 
     if (eff_rot) {
       canv_rot[i] = new TCanvas( TString((channels[i].name + "_rot").c_str()).ReplaceAll("-","_").Data(), "", 550, 500);
-      canv_rot[i] -> SetRightMargin(canv[i] -> GetLeftMargin());
+      canv_rot[i] -> SetRightMargin(canv_rot[i] -> GetLeftMargin());
 
       hist_eff_rot[i] -> Draw("colz");
       fid_line_rot -> DrawLine( rot_fiducialX[i][0], rot_fiducialY[i][0],
@@ -479,6 +470,15 @@ void doMaps(bool debug, const char* dir) {
 				rot_fiducialX[i][1], rot_fiducialY[i][1]);
       fid_line_rot -> DrawLine( rot_fiducialX[i][3], rot_fiducialY[i][3],
 				rot_fiducialX[i][2], rot_fiducialY[i][2]);
+
+      fid_line_rot->DrawLine( anti_fiducialX[i][0], anti_fiducialY[i][0],
+			      anti_fiducialX[i][1], anti_fiducialY[i][1]);
+      fid_line_rot->DrawLine( anti_fiducialX[i][0], anti_fiducialY[i][0],
+			      anti_fiducialX[i][2], anti_fiducialY[i][2]);
+      fid_line_rot->DrawLine( anti_fiducialX[i][3], anti_fiducialY[i][3],
+			      anti_fiducialX[i][1], anti_fiducialY[i][1]);
+      fid_line_rot->DrawLine( anti_fiducialX[i][3], anti_fiducialY[i][3],
+			  anti_fiducialX[i][2], anti_fiducialY[i][2]);
       TLatex label_rot;
       label_rot.SetNDC();
       label_rot.SetTextSize(0.05);
@@ -959,7 +959,7 @@ void doEnergyTS(bool debug, const char* dir) {
 
   // Now we get the data
   TChain* chain = new TChain("slim");
-  chain->Add(Form("%s/*_slim.root",dir));
+  chain->Add(Form("%s/*_slim.root", dir));
 
   // Get the branches I need:
   vector<double> *xa = 0, *xc = 0, *ya = 0, *yc = 0;
@@ -1012,10 +1012,10 @@ void doEnergyTS(bool debug, const char* dir) {
       // I think this is the pedestal cut?
       energy_ps-=TIMESLICES.size()*ped[channels[i].chan];
 
-      if ( isFiducial( i, x_hit, y_hit, anti_fiducialX, anti_fiducialY))
+      if ( isOtherFiducial( i, x_hit, y_hit, anti_fiducialX, anti_fiducialY))
 	hist_en_ped[i]->Fill( energy_ps);
 
-      if (isFiducial( i, x_hit, y_hit)) // THIS IS THE MOST IMPORTANT STEP 
+      if (!isFiducial( i, x_hit, y_hit)) // THIS IS THE MOST IMPORTANT STEP 
         continue;
 
       hist_en[i]->Fill(energy_ps);
@@ -1048,13 +1048,13 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_en[i]->GetYaxis()->SetTitle("Events");
     hist_en[i]->SetLineWidth(2);
     hist_en[i]->SetLineColor(color[i]);
-    printf("After fiducial cut, we use %f entries\n", hist_en[i]->GetEntries());
+    printf("After fiducial cut, we use %d entries\n", (int)hist_en[i]->GetEntries());
 
     hist_en_ped[i]->GetXaxis()->SetTitle("Charge [fC]");
     hist_en_ped[i]->GetYaxis()->SetTitle("Events");
     hist_en_ped[i]->SetLineWidth(2);
     hist_en_ped[i]->SetLineColor(color[i]);
-    printf("After fiducial cut, we use %f entries for PEDESTAL\n", hist_en_ped[i]->GetEntries());
+    printf("After fiducial cut, we use %d entries for PEDESTAL\n", (int)hist_en_ped[i]->GetEntries());
 
     hist_en_bins[i]->GetXaxis()->SetTitle("Charge [fC]");
     hist_en_bins[i]->GetYaxis()->SetTitle("Events");
@@ -1129,7 +1129,7 @@ void doEnergyTS(bool debug, const char* dir) {
 
     // ******** PEDESTEL HISTOGRAM *******
     canv_ped[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
-    canv_ped[i]->SetLogx(0);
+    canv_ped[i]->SetLogx();
     canv_ped[i]->SetLogy();
     hist_en_ped[i]->Draw("colz");
     hist_en_ped[i]->Write();
