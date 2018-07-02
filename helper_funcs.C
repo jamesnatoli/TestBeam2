@@ -72,7 +72,7 @@ bool isRotFiducial(int i, float x_hit, float y_hit) {
   return oddNodes;
 }
 
-bool isFiducial(int i, float x_hit, float y_hit, float arrX[NUMCHAN][4], float arrY[NUMCHAN][4]) {
+bool isOtherFiducial(int i, float x_hit, float y_hit, float arrX[4][4], float arrY[4][4]) {
   // Find if it is fiducial!
   int polyCorners = 4;
   int k, j=polyCorners-1 ;
@@ -108,18 +108,62 @@ double rotate_Point(double point_X, double point_Y, int channel_num, char xy) {
   }
 }
 
-/*
-bool is_Left_Or_Right( int chan, double px, double py) {
-  if (px < min(rot_fiducialX[chan][0], rot_fiducialX[chan][2])
-      || px > max(rot_fiducialX[chan][1], rot_fiducialX[chan][3]))
-    return false;
-  else if (px > max(rot_fiducialX[chan][0], rot_fiducialX[chan][2])
-	   || px > min(rot_fiducialX[chan][1], rot_fiducialX[chan][3]))
+bool above_or_below(double px, double py, int chan) {
+  double slope = 0, del = 0;
+  // Definately Inside
+  if (py <= min(rot_fiducialY[chan][2], rot_fiducialY[chan][3]) && 
+      py >= max(rot_fiducialY[chan][0], rot_fiducialY[chan][1]))
     return true;
+  // Definately Outside
+  else if (py > max(rot_fiducialY[chan][2], rot_fiducialY[chan][3]) ||
+	   py < min(rot_fiducialY[chan][0], rot_fiducialY[chan][1]))
+    return false;
+  // Maybe Top Portion
+  else if (py >= min( rot_fiducialY[chan][2], rot_fiducialY[chan][3]) &&
+	   py <= max( rot_fiducialY[chan][2], rot_fiducialY[chan][3])) {
+    slope = (rot_fiducialY[chan][3] - rot_fiducialY[chan][2]) / (rot_fiducialX[chan][3] - rot_fiducialX[chan][2]);
+    del = (py - rot_fiducialY[chan][2]) / (px - rot_fiducialX[chan][2]);
+    return del <= slope;
+  }
+  // Maybe Bottom Portion
+  else if (py >= min(rot_fiducialY[chan][0], rot_fiducialY[chan][1]) &&
+	   py <= max(rot_fiducialY[chan][0], rot_fiducialY[chan][1])){
+    slope = (rot_fiducialY[chan][1] - rot_fiducialY[chan][0]) / (rot_fiducialX[chan][1] - rot_fiducialX[chan][0]);
+    del = (py - rot_fiducialY[chan][0]) / (px - rot_fiducialX[chan][0]);
+    return del >= slope;
+  }
   else {
-    double m = (abs(rot_fiducialY[chan][2] - rot_fiducialY[chan][0])
-		/ abs(rot_fiducialX[chan][2] - rot_fiducialX[chan][0]));
-    if ((m * (px - rot_fiducialX[chan][0])
+    cout << "ERROR" << endl;
+    return false;
+  }
+}
 
-	 } */
-
+bool left_or_right( double px, double py, int chan) {
+  double slope = 0, del = 0;
+  // Definately Inside
+  if (px <= min(rot_fiducialX[chan][3], rot_fiducialX[chan][1]) && 
+      px >= max(rot_fiducialX[chan][2], rot_fiducialX[chan][0]))
+    return true;
+  // Definately Outside
+  else if (px > max(rot_fiducialX[chan][3], rot_fiducialX[chan][1]) ||
+	   px < min(rot_fiducialX[chan][2], rot_fiducialX[chan][0]))
+    return false;
+  // Maybe Right Portion
+  else if (px >= min(rot_fiducialX[chan][3], rot_fiducialX[chan][1]) &&
+	   px <= max(rot_fiducialX[chan][3], rot_fiducialX[chan][1])){
+    slope = (rot_fiducialY[chan][2] - rot_fiducialY[chan][0]) / (rot_fiducialX[chan][2] - rot_fiducialX[chan][0]);
+    del = (py - rot_fiducialY[chan][0]) / (px - rot_fiducialX[chan][0]);
+    return del <= slope;
+  }
+  // Maybe Left Portion
+  else if (px >= min(rot_fiducialX[chan][0], rot_fiducialX[chan][2]) &&
+           px <= max(rot_fiducialX[chan][0], rot_fiducialX[chan][2])){
+    slope = (rot_fiducialY[chan][2] - rot_fiducialY[chan][0]) / (rot_fiducialX[chan][2] - rot_fiducialX[chan][0]);
+    del = (py - rot_fiducialY[chan][0]) / (px - rot_fiducialX[chan][0]);
+    return del <= slope;
+  }
+  else {
+    cout << "ERROR L or R" << endl;
+    return false;
+  }
+}
