@@ -71,7 +71,7 @@ bool isRotFiducial(int i, float x_hit, float y_hit) {
   }
   return oddNodes;
 }
-/* 
+
 bool isFiducial(int i, float x_hit, float y_hit, float arrX[NUMCHAN][4], float arrY[NUMCHAN][4]) {
   // Find if it is fiducial!
   int polyCorners = 4;
@@ -89,7 +89,6 @@ bool isFiducial(int i, float x_hit, float y_hit, float arrX[NUMCHAN][4], float a
   }
   return oddNodes;
 }
-*/
 
 /* double rotate_Point(double point_X, double point_Y, double theta, char xy) { */
 /*   if (toupper(xy) == 'X') { */

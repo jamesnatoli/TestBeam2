@@ -1,1 +1,18 @@
-ignore these files
+# ignore images
+*Images*
+*Plots*
+*.png
+
+# ignore emacs backup versions
+*~
+
+# ignore weird root files
+*.d
+*.so
+*.pcm
+
+# also ignore root files
+*.root
+
+# And this too, ignore it
+*junk*
