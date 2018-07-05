@@ -39,7 +39,7 @@ void tuneFit::drawHists() {
   test_hist->Draw("SAME");
   leg->Draw("SAME");
   char *help = Form( "/Images/%s.png", Fitting::getName().c_str());
-  canv->Print( "~/TestBeam/Fitting/Images/tuneFit.png");
+  canv->Print( Form( "%s/tuneFit.png", dir_img));
   canv->SetLogx();
-  canv->Print( "~/TestBeam/Fitting/Images/tuneFit_log.png");
+  canv->Print( Form( "%s/tuneFit_log.png", dir_img));
 }

@@ -8,8 +8,8 @@ double Fitting::fitFunc(double *xcor, double *params) {
   if (counter%100 == 0) 
     std::cout << counter << " function calls" << std::endl;
   
-  for (unsigned int i = 0; i < EVENTS; i++) {
-    test_hist->Fill( (my_rand->Gaus( params[3], params[4])) + 
+  for (unsigned int i = 0; i < num_events[0]; i++) {
+    test_hist->Fill( (my_rand->Gaus( gaus_mean[0], gaus_sigma[0])) + 
 		     (my_rand->Gaus( (my_rand->Poisson( my_rand->Landau( params[0], params[1])) * params[2]),
 				     TMath::Sqrt(my_rand->Poisson( my_rand->Landau( params[0], params[1])) * params[2]))));
   }
@@ -21,14 +21,14 @@ double Fitting::fitFunc(double *xcor, double *params) {
 Fitting::Fitting( const std::string name) {
   // Set up the file and the histogram
   // Eventually I need to add something to this to allow other files to be fit
-  dir_en = "~/TestBeam/Fitting/energy_hists.root";
   my_file = new TFile( dir_en);
   test_hist = new TH1F("Test Hist", "", 100, 0, 600);
   real_hist = (TH1F*)my_file->Get("en_bins_EJ_260;1");
   my_rand = new TRandom();
   leg = new TLegend( 0.2, 0.2, 0.4, 0.4,"","brNDC");  
-  counter = 0;
   
+  counter = 0;
+
   if (!test_hist || !my_rand || !real_hist 
       || !my_file->IsOpen() || !leg) {
     std::cout << "Danger, Will Robinson" << std::endl;

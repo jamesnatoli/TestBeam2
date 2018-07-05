@@ -10,8 +10,9 @@
 #include <TLegend.h>
 #include <string>
 
-#define EVENTS 750000
+#define EVENTS 667504
 #define BINS 150
+#define NUMCHAN 8
 
 class Fitting {
  public:
@@ -24,8 +25,36 @@ class Fitting {
   // We need this because we pass a member function to the TF1 constructor
   Fitting *fptr;
   int counter;
-  char *dir_en;
-
+  char const *dir_en  = "~/TB_Analysis_17/new_git_code/TestBeam2/energy_hists.root";
+  char const *dir_img = "~/TB_Analysis_17/new_git_code/TestBeam2/Fitting/Images";
+  float num_events[NUMCHAN] = 
+    { 667504,
+      800133,
+      744374,
+      24361,
+      53388,
+      67250,
+      44640,
+      759491 };
+  float gaus_sigma[NUMCHAN] = 
+    { -0.12817,
+      -0.03207,
+      -0.67574,
+      -0.13574,
+      -0.36461,
+      -0.22439,
+      -0.72199,
+      -0.83230 }; 
+  float gaus_mean[NUMCHAN] = 
+    { 7.84473,
+      8.20680,
+      8.39783,
+      7.36830,
+      6.80696,
+      6.98477,
+      6.37060,
+      6.79495 };
+  
   // Constructor
   Fitting( const std::string name = "");
   virtual void theFit() { /* nothing */ };

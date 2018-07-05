@@ -88,13 +88,13 @@ void doMaps(bool debug, const char* dir) {
   effX = effY = debug;
   effX_rot = effY_rot = debug;
   eff_rot = !debug;
-  eff = debug;
-  denXY_rot_cut = debug;
-  overlay = false;
-  crudtest = false;
-  noisetest = false;
+  eff = !debug;
+  denXY_rot_cut = !debug;
+  overlay = true;
+  crudtest = true;
+  noisetest = true;
   center = false;
-  pedXY_rot_cut = debug;
+  pedXY_rot_cut = !debug;
 
   // Fill the Rotated Arrays
   // This fills both the Theta array, and the fiducial arrays
@@ -878,7 +878,8 @@ void doMaps(bool debug, const char* dir) {
 
       // Now update
       gPad->Update();
-      canv_noiseY[i]->Print(Form( "noiseY_%s.png", channels[i].name.c_str()));
+      canv_noiseY[i]->Print(Form( "Noise_Plots/noiseY_%s.png", channels[i].name.c_str()));
+      delete canv_noiseY[i];
     }
   }
   // ******** CRUD TEST ********
@@ -933,6 +934,13 @@ void doEnergyTS(bool debug, const char* dir) {
     return;
   }
 
+  bool reg, bins, pedestal, time_slice, overlay;
+  reg = !debug;
+  bins = !debug;
+  pedestal = !debug;
+  time_slice = debug;
+  overlay = !debug;
+
   // Let us define the histogram and book them
   TH1F *hist_en[NUMCHAN]; // 8 is the number of tiles; channels.size() == 8
   TH1F *hist_en_bins[NUMCHAN]; // This will NOT use the weird edges file
@@ -950,10 +958,10 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_en_bins[i] = new TH1F(TString(Form("en_bins_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
 			       "", 150, 0.0, 600.0);
     hist_en_ped[i] = new TH1F(TString(Form("en_ped_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
-			      "", 150, 0.0, 600.0);
+			      "", 150, -100.0, 300.0);
     hist_ts[i] = new TH1F(TString(Form("ts_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
                           10,0.5,10.5);
-    hist_tsF[i] = new TH1F(TString(Form("ts_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
+    hist_tsF[i] = new TH1F(TString(Form("tsF_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
 			   10,0.5,10.5);
   }
 
@@ -1041,6 +1049,7 @@ void doEnergyTS(bool debug, const char* dir) {
   TCanvas* canv[NUMCHAN];
   TCanvas* canv_bins[NUMCHAN];
   TCanvas* canv_ped[NUMCHAN];
+  TCanvas* canv_allped;
 
   for (unsigned int i = 0; i < channels.size(); ++i) {
 
@@ -1048,13 +1057,15 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_en[i]->GetYaxis()->SetTitle("Events");
     hist_en[i]->SetLineWidth(2);
     hist_en[i]->SetLineColor(color[i]);
-    printf("After fiducial cut, we use %d entries\n", (int)hist_en[i]->GetEntries());
+    cout << "After fiducial cut, we use " << (int)hist_en[i]->GetEntries() 
+	 << " entries for " << entry[i].c_str() << endl;
 
     hist_en_ped[i]->GetXaxis()->SetTitle("Charge [fC]");
     hist_en_ped[i]->GetYaxis()->SetTitle("Events");
     hist_en_ped[i]->SetLineWidth(2);
     hist_en_ped[i]->SetLineColor(color[i]);
-    printf("After fiducial cut, we use %d entries for PEDESTAL\n", (int)hist_en_ped[i]->GetEntries());
+    cout << "After fiducial cut, we use " << (int)hist_en_ped[i]->GetEntries() 
+	 << " entries for " << entry[i].c_str() << " pedestal" << endl;
 
     hist_en_bins[i]->GetXaxis()->SetTitle("Charge [fC]");
     hist_en_bins[i]->GetYaxis()->SetTitle("Events");
@@ -1067,177 +1078,206 @@ void doEnergyTS(bool debug, const char* dir) {
     fid_line->SetLineStyle(kDashed);
     //fid_line->DrawLine( -20, -70, -20, 70);
 
-    canv[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
-    canv[i]->SetLogx();
-    canv[i]->SetLogy();
-    hist_en[i]->Draw("colz");
-    hist_en[i]->Write();
-
-    TLatex label;
-    // NDC means normalized coordinates
-    label.SetNDC();
-    label.SetTextSize(0.05);
-    label.SetTextAlign(30);
-    label.DrawLatex(0.92,0.875,entry[i].c_str());
-
-    label.SetTextAlign(11);
+    if (reg) {
+      canv[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
+      canv[i]->SetLogx();
+      canv[i]->SetLogy();
+      hist_en[i]->Draw("colz");
+      hist_en[i]->Write();
+      
+      TLatex label;
+      // NDC means normalized coordinates
+      label.SetNDC();
+      label.SetTextSize(0.05);
+      label.SetTextAlign(30);
+      label.DrawLatex(0.92,0.875, entry[i].c_str());
+      
+      label.SetTextAlign(11);
+      
+      float eff = hist_en[i]->Integral(hist_en[i]->FindBin(25),
+				       hist_en[i]->GetNbinsX()) / hist_en[i]->GetEntries();
+      
+      //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
+      eff*=100;
+      //eff_err*=100;
+      label.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
+				       "{Mean=%3.1f#pm%3.1ffC}",
+				       eff,
+				       hist_en[i]->GetMean(),
+				       hist_en[i]->GetMeanError()));
+      
+      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      delete canv[i];
+    }
     
-    float eff = hist_en[i]->Integral(hist_en[i]->FindBin(25),
-                                     hist_en[i]->GetNbinsX()) / hist_en[i]->GetEntries();
-    
-    //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
-    eff*=100;
-    //eff_err*=100;
-    label.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
-				     "{Mean=%3.1f#pm%3.1ffC}",
-				     eff,
-				     hist_en[i]->GetMean(),
-				     hist_en[i]->GetMeanError()));
-
-    canv[i]->Print(Form("Energy_Plots/energy_PS_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
-    canv[i]->Print(Form("Energy_Plots/energy_PS_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
-
     // ******** STANDARD (EVEN SPACED) BINNING ENERGY HISTOGRAM *******
-    canv_bins[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
-    canv_bins[i]->SetLogx(0);
-    canv_bins[i]->SetLogy();
-    hist_en_bins[i]->Draw("colz");
-    hist_en_bins[i]->Write();
-
-    TLatex label_bins;
-    label_bins.SetNDC();
-    label_bins.SetTextSize(0.05);
-    label_bins.SetTextAlign(30);
-    label_bins.DrawLatex(0.92, 0.875, Form( "%s bins", entry[i].c_str()));
-    label_bins.SetTextAlign(11);
-    
-    float eff_bins = hist_en_bins[i]->Integral(hist_en_bins[i]->FindBin(25),
-                                     hist_en_bins[i]->GetNbinsX()) / hist_en[i]->GetEntries();
-    
-    //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
-    eff_bins*=100;
-    //eff_err*=100;
-    label_bins.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
-				     "{Mean=%3.1f#pm%3.1ffC}",
-				     eff_bins,
-				     hist_en_bins[i]->GetMean(),
-				     hist_en_bins[i]->GetMeanError()));
-
-    canv_bins[i]->Modified();
-    canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
-    canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+    if (bins) {
+      canv_bins[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
+      canv_bins[i]->SetLogx(0);
+      canv_bins[i]->SetLogy();
+      hist_en_bins[i]->Draw("colz");
+      hist_en_bins[i]->Write();
+      
+      TLatex label_bins;
+      label_bins.SetNDC();
+      label_bins.SetTextSize(0.05);
+      label_bins.SetTextAlign(30);
+      label_bins.DrawLatex(0.92, 0.875, Form( "%s bins", entry[i].c_str()));
+      label_bins.SetTextAlign(11);
+      
+      float eff_bins = hist_en_bins[i]->Integral(hist_en_bins[i]->FindBin(25),
+						 hist_en_bins[i]->GetNbinsX()) / hist_en[i]->GetEntries();
+      
+      //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
+      eff_bins*=100;
+      //eff_err*=100;
+      label_bins.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
+					    "{Mean=%3.1f#pm%3.1ffC}",
+					    eff_bins,
+					    hist_en_bins[i]->GetMean(),
+					    hist_en_bins[i]->GetMeanError()));
+      
+      canv_bins[i]->Modified();
+      canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      delete canv_bins[i];
+    }
 
     // ******** PEDESTEL HISTOGRAM *******
-    canv_ped[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
-    canv_ped[i]->SetLogx();
-    canv_ped[i]->SetLogy();
-    hist_en_ped[i]->Draw("colz");
-    hist_en_ped[i]->Write();
-
-    TLatex label_ped;
-    label_ped.SetNDC();
-    label_ped.SetTextSize(0.05);
-    label_ped.SetTextAlign(30);
-    label_ped.DrawLatex(0.92, 0.875, Form( "%s ped", entry[i].c_str()));
-    label_ped.SetTextAlign(11);
-    
-    float eff_ped = hist_en_ped[i]->Integral(hist_en_ped[i]->FindBin(25),
-					      hist_en_ped[i]->GetNbinsX()) / hist_en[i]->GetEntries();
-    
-    //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
-    eff_ped*=100;
-    //eff_err*=100;
-    label_ped.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
-					 "{Mean=%3.1f#pm%3.1ffC}",
-					 eff_ped,
-					 hist_en_ped[i]->GetMean(),
-					 hist_en_ped[i]->GetMeanError()));
-    
-    canv_ped[i]->Modified();
-    canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
-    canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+    if (pedestal) {
+      canv_ped[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
+      canv_ped[i]->SetLogx();
+      canv_ped[i]->SetLogy();
+      hist_en_ped[i]->Fit("gaus", "", "", -25.0, 25.0);
+      hist_en_ped[i]->Draw("colz");
+      hist_en_ped[i]->Write();
+      
+      TLatex label_ped;
+      label_ped.SetNDC();
+      label_ped.SetTextSize(0.05);
+      label_ped.SetTextAlign(30);
+      label_ped.DrawLatex(0.92, 0.875, Form( "%s ped", entry[i].c_str()));
+      label_ped.SetTextAlign(11);
+      
+      float eff_ped = hist_en_ped[i]->Integral(hist_en_ped[i]->FindBin(25),
+					       hist_en_ped[i]->GetNbinsX()) / hist_en[i]->GetEntries();
+      
+      //float eff_err = TMath::Sqrt(eff*(1-eff)/hist_en[i]->GetEntries());
+      eff_ped*=100;
+      //eff_err*=100;
+      /* label_ped.DrawLatex(0.20,0.225, Form("#splitline{#epsilon=%4.1f%%}"
+	 "{Mean=%3.1f#pm%3.1ffC}",
+	 eff_ped,
+	 hist_en_ped[i]->GetMean(),
+	 hist_en_ped[i]->GetMeanError())); */
+      
+      canv_ped[i]->Modified();
+      canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      delete canv_ped[i];
+    } // if (ped)
   } // channels loop
   
+  // ******** OVERLAY THE PEDESTALS *******
+  if (overlay) {
+    TLegend* leg_allped = new TLegend(0.2,0.2,0.4,0.4,"","brNDC");
+    canv_allped = new TCanvas("Overlayed_Pedestal", "", 500, 500);
+    canv_allped->SetLogx();
+    canv_allped->SetLogy();
+    
+    for (unsigned int k = 0; k < NUMCHAN; k++) {
+      hist_en_ped[k]->SetLineColor(color[k]);
+      hist_en_ped[k]->Draw("same");
+      leg_allped->AddEntry(hist_en_ped[k], entry[k].c_str(), "l");
+    }
+    
+    leg_allped->SetTextSize(.03);
+    leg_allped->Draw();
+    
+    canv_allped->Print("Overlayed_Plots/energyPS_all_ped.png");
+  }
 
-  TCanvas* canv_ts = new TCanvas( "ts", "", 500, 500);
-  /* canv_ts->Divide( 2, 1);
-     canv_ts->cd(1); */
-  
-  TLegend* leg = new TLegend(0.2,0.7,0.4,0.9,"","brNDC");
-  leg->SetTextSize(0.05);
-  TLegend* leg_fing = new TLegend(0.2,0.7,0.4,0.9,"","brNDC");
-  leg_fing->SetTextSize(0.05);
-
-  // Let us also get the histogram with max value...
-  int max_index = 0;
-  int max_indexF = 0;
-  float max_value = -99;
-  float max_valueF = -99;
-  
-  for (unsigned int i = 0; i < channels.size(); ++i) {
-    if ((i < 3) || (i == 7)) {
-      hist_ts[i]->SetLineWidth(2);
-      hist_ts[i]->SetLineColor(color[i]);
-      hist_ts[i]->SetLineStyle(style[i]);
-
-      hist_ts[i]->GetXaxis()->SetTitle("Time Slice [25ns]");
-      hist_ts[i]->GetXaxis()->SetNdivisions(NTS);
-      hist_ts[i]->GetYaxis()->SetTitle("Charge [fC]");
-      // changed this from 1.6
-      hist_ts[i]->GetYaxis()->SetTitleOffset(1.6);
-      leg->AddEntry(hist_ts[i],entry[i].c_str(),"l");
-
-      if (hist_ts[i]->GetMaximum()>max_value) {
-        max_index = i;
-        max_value = hist_ts[i]->GetMaximum();
+  if (time_slice) {
+    TCanvas* canv_ts = new TCanvas( "ts", "", 500, 500);
+    /* canv_ts->Divide( 2, 1);
+       canv_ts->cd(1); */
+    
+    TLegend* leg = new TLegend(0.2,0.7,0.4,0.9,"","brNDC");
+    leg->SetTextSize(0.05);
+    TLegend* leg_fing = new TLegend(0.2,0.7,0.4,0.9,"","brNDC");
+    leg_fing->SetTextSize(0.05);
+    
+    // Let us also get the histogram with max value...
+    int max_index = 0;
+    int max_indexF = 0;
+    float max_value = -99;
+    float max_valueF = -99;
+    
+    for (unsigned int i = 0; i < channels.size(); ++i) {
+      if ((i < 3) || (i == 7)) {
+	hist_ts[i]->SetLineWidth(2);
+	hist_ts[i]->SetLineColor(color[i]);
+	hist_ts[i]->SetLineStyle(style[i]);
+	
+	hist_ts[i]->GetXaxis()->SetTitle("Time Slice [25ns]");
+	hist_ts[i]->GetXaxis()->SetNdivisions(NTS);
+	hist_ts[i]->GetYaxis()->SetTitle("Charge [fC]");
+	// changed this from 1.6
+	hist_ts[i]->GetYaxis()->SetTitleOffset(1.6);
+	leg->AddEntry(hist_ts[i],entry[i].c_str(),"l");
+	
+	if (hist_ts[i]->GetMaximum()>max_value) {
+	  max_index = i;
+	  max_value = hist_ts[i]->GetMaximum();
+	}
+      }
+      else { // For finger tiles
+	hist_tsF[i]->SetLineWidth(2);
+	hist_tsF[i]->SetLineColor(color[i]);
+	hist_tsF[i]->SetLineStyle(style[i]);
+	
+	hist_tsF[i]->GetXaxis()->SetTitle("Time Slice [25ns]");
+	hist_tsF[i]->GetXaxis()->SetNdivisions(NTS);
+	hist_tsF[i]->GetYaxis()->SetTitle("Charge [fC]");
+	// changed this from 1.6
+	hist_tsF[i]->GetYaxis()->SetTitleOffset(1.6);
+	leg_fing->AddEntry(hist_tsF[i],entry[i].c_str(),"l");
+	
+	if (hist_tsF[i]->GetMaximum()>max_valueF) {
+	  max_indexF = i;
+	  max_valueF = hist_tsF[i]->GetMaximum();
+	}
       }
     }
-    else { // For finger tiles
-      hist_tsF[i]->SetLineWidth(2);
-      hist_tsF[i]->SetLineColor(color[i]);
-      hist_tsF[i]->SetLineStyle(style[i]);
-
-      hist_tsF[i]->GetXaxis()->SetTitle("Time Slice [25ns]");
-      hist_tsF[i]->GetXaxis()->SetNdivisions(NTS);
-      hist_tsF[i]->GetYaxis()->SetTitle("Charge [fC]");
-      // changed this from 1.6
-      hist_tsF[i]->GetYaxis()->SetTitleOffset(1.6);
-      leg_fing->AddEntry(hist_tsF[i],entry[i].c_str(),"l");
-
-      if (hist_tsF[i]->GetMaximum()>max_valueF) {
-        max_indexF = i;
-        max_valueF = hist_tsF[i]->GetMaximum();
-      }
+    hist_ts[max_index]->Draw("hist");
+    for (unsigned int i=0;i<channels.size(); i++) {
+      if ((i < 3) || (i == 7))
+	hist_ts[i]->Draw("hist,same");
     }
+    leg->Draw("same");
+    hist_ts[max_index]->Draw("axis,same");
+    
+    canv_ts->Print("Time_Slice_Plots/ts.png");
+    canv_ts->Print("Time_Slice_Plots/ts.C");
+    delete canv_ts;
+    
+    
+    TCanvas* canv_tsF = new TCanvas("ts","",500,500);
+    //canv_ts->cd(2);
+    hist_tsF[max_indexF]->Draw("hist");
+    for (unsigned int i=0;i<channels.size(); i++) {
+      if (i > 2 || i < 7)
+	hist_tsF[i]->Draw("hist,same");
+    }
+    
+    leg_fing->Draw("same");
+    hist_tsF[max_indexF]->Draw("axis,same");
+    
+    canv_tsF->Print("Time_Slice_Plots/tsF.png");
+    canv_tsF->Print("Time_Slice_Plots/tsF.C");
+    delete canv_tsF;
   }
-  hist_ts[max_index]->Draw("hist");
-  for (unsigned int i=0;i<channels.size(); i++) {
-    if ((i < 3) || (i == 7))
-      hist_ts[i]->Draw("hist,same");
-  }
-  leg->Draw("same");
-  hist_ts[max_index]->Draw("axis,same");
-
-  canv_ts->Print("Time_Slice_Plots/ts.png");
-  canv_ts->Print("Time_Slice_Plots/ts.C");
-
-
-  TCanvas* canv_tsF = new TCanvas("ts","",500,500);
-  //canv_ts->cd(2);
-  hist_tsF[max_indexF]->Draw("hist");
-  for (unsigned int i=0;i<channels.size(); i++) {
-    if (i > 2 || i < 7)
-      hist_tsF[i]->Draw("hist,same");
-  }
-
-  leg_fing->Draw("same");
-  hist_tsF[max_indexF]->Draw("axis,same");
-
-  canv_tsF->Print("Time_Slice_Plots/tsF.png");
-  canv_tsF->Print("Time_Slice_Plots/tsF.C");
-
-  //canv_ts->Print("Time_Slice_Plots/ts_both.png");
-  //canv_ts->Print("Time_Slice_Plots/ts_both.C");
 
   energy_hists->Close();
 }
