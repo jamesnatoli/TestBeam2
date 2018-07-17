@@ -10,13 +10,11 @@
 #include <TLegend.h>
 #include <string>
 
-#define EVENTS 667504
-#define BINS 150
 #define NUMCHAN 8
 
 class Fitting {
  public:
-  TH1F *real_hist, *test_hist;
+  TH1F *real_hist, *test_hist, *test_ped;
   TF1 *my_fit;
   TRandom *my_rand;
   TFile *my_file;
@@ -27,6 +25,8 @@ class Fitting {
   int counter;
   char const *dir_en  = "~/TB_Analysis_17/new_git_code/TestBeam2/energy_hists.root";
   char const *dir_img = "~/TB_Analysis_17/new_git_code/TestBeam2/Fitting/Images";
+  double params[5];
+  double ped_params[2];
   float num_events[NUMCHAN] = 
     { 667504,
       800133,
@@ -36,7 +36,16 @@ class Fitting {
       67250,
       44640,
       759491 };
-  float gaus_sigma[NUMCHAN] = 
+  float num_ped_events[NUMCHAN] = 
+    { 4060,
+      4060,
+      4060,
+      1659,
+      1659,
+      1659,
+      1659,
+      4060 };
+  float gaus_mean[NUMCHAN] = 
     { -0.12817,
       -0.03207,
       -0.67574,
@@ -45,7 +54,7 @@ class Fitting {
       -0.22439,
       -0.72199,
       -0.83230 }; 
-  float gaus_mean[NUMCHAN] = 
+  float gaus_sigma[NUMCHAN] = 
     { 7.84473,
       8.20680,
       8.39783,
@@ -62,17 +71,14 @@ class Fitting {
   void work();
   const std::string getName();
   virtual double fitFunc(double *x, double *p);
+  virtual double fitFuncPed(double *x, double *p);
+  // These used in pedFit
+  virtual void theTuneFit();
+  virtual void theRealFit();
   TF1* getFit();
   
  private:
   std::string my_name;
-};
-
-class realFit: public Fitting {
- public:
-  realFit( const std::string name);
-  void theFit();
-  void drawHists();
 };
 
 class splitFit: public Fitting {
@@ -98,5 +104,23 @@ class tuneFit: public Fitting {
   // Avoids hiding
   double fitFunc( double *x, double *p);
   void fitFunc( double *p);
+};
+
+class realFit: public Fitting {
+ public:
+  realFit( const std::string name);
+  void theFit();
+  void drawHists();
+};
+
+class pedFit: public Fitting {
+ public:
+  pedFit *fptr;
+  pedFit( const std::string name = "");
+  void theTuneFit();
+  void theRealFit();
+  void drawHists();
+  double fitFunc( double *x, double *p);
+  void otherFitFunc( double *params);
 };
 #endif

@@ -2,11 +2,26 @@
 #include "realFit.cpp"
 #include "tuneFit.cpp"
 #include "splitFit.cpp"
+#include "pedFit.cpp"
 
-//Fitting *test_fit;
+void doPedFit() {
+  Fitting *test_fit = new pedFit( "en_ped_EJ_260;1");
+  if (!test_fit) {
+    std::cout << "BAD" << std::endl;
+    return;
+  }
+  test_fit->theRealFit();
+  std::cout << "Mean  = " << (test_fit->my_fit->GetParameter(0)) << std::endl;
+  std::cout << "Sigma  = " << (test_fit->my_fit->GetParameter(1)) << std::endl;
+  test_fit->drawHists();
   
+  test_fit->theTuneFit();
+  test_fit->drawHists();
+  // delete test_fit;
+}
+
 void doAddFit() {
-  Fitting *test_fit = new addFit( "addFit");
+  Fitting *test_fit = new addFit( "en_bins_EJ_260;1");
   if (!test_fit) {
     std::cout << "BAD" << std::endl;
     return;
@@ -17,7 +32,7 @@ void doAddFit() {
 }
 
 void doTuneFit() {
-  Fitting *test_fit = new tuneFit( "tuneFit");
+  Fitting *test_fit = new tuneFit( "en_bins_EJ_260;1");
   if (!test_fit) {
     std::cout << "BAD" << std::endl;
     return;
@@ -28,7 +43,7 @@ void doTuneFit() {
 }
 
 void doRealFit() {
-  Fitting *test_fit = new realFit( "realFit");
+  Fitting *test_fit = new realFit( "en_bins_EJ_260;1");
   if (!test_fit) {
     std::cout << "BAD" << std::endl;
     return;
@@ -39,7 +54,7 @@ void doRealFit() {
 }
 
 void doSplitFit() {
-  Fitting *test_fit = new splitFit( "splitFit");
+  Fitting *test_fit = new splitFit( "en_bins_EJ_260;1");
   if (!test_fit) {
     std::cout << "BAD" << std::endl;
     return;

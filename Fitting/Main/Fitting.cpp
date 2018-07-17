@@ -17,21 +17,50 @@ double Fitting::fitFunc(double *xcor, double *params) {
   return test_hist->GetBinContent( test_hist->FindBin( xcor[0]));
 }
 
+double Fitting::fitFuncPed( double *xcor, double *params) {
+  test_ped->Reset();
+  if (counter%100 == 0)
+    std::cout << counter << " function calls" << std::endl;
+  
+  for (unsigned int i = 0; i < num_ped_events[0]; i++) {
+    test_ped->Fill( (my_rand->Gaus( params[0], params[1])));
+  }
+  counter++;
+  return test_ped->GetBinContent( test_ped->FindBin( xcor[0]));
+}
+
 // Constructor
 Fitting::Fitting( const std::string name) {
   // Set up the file and the histogram
   // Eventually I need to add something to this to allow other files to be fit
   my_file = new TFile( dir_en);
-  test_hist = new TH1F("Test Hist", "", 100, 0, 600);
-  real_hist = (TH1F*)my_file->Get("en_bins_EJ_260;1");
+  test_hist = new TH1F("Test Hist", "", 150, 0, 500);
+  test_ped = new TH1F("Test Ped Hist", "", 37, -30, 30);
+  real_hist = (TH1F*)my_file->Get( name.c_str());
   my_rand = new TRandom();
   leg = new TLegend( 0.2, 0.2, 0.4, 0.4,"","brNDC");  
+
+  // Pedestal Gaussian Mean                                                                       
+  ped_params[0] = 0;
+  // Pedestal Gaussian Width                                                                      
+  ped_params[1] = 7;
+  
+  // The most probably value of the Landau, or is it?                                             
+  params[0] = 2.75;
+  // The sigma of the Landau                                                                      
+  params[1] = 0.1;
+  // The charge parameter                                                                         
+  params[2] = 42;
+  // The pedestal parameters
+  params[3] = ped_params[0];
+  params[4] = ped_params[1];
+  
   
   counter = 0;
 
   if (!test_hist || !my_rand || !real_hist 
       || !my_file->IsOpen() || !leg) {
-    std::cout << "Danger, Will Robinson" << std::endl;
+    std::cout << "Danger, Will Robinson (fitting.cpp)" << std::endl;
     return;
   }
 

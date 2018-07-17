@@ -14,23 +14,10 @@ void tuneFit::fitFunc( double *params) {
   Fitting::fitFunc( one, params);
 };
 
-void tuneFit::theFit() {
-  double params[7] = {0, 0, 0, 0, 0, 0, 0};
-  // The most probably value of the Landau, or is it?                                             
-  params[0] = 2.75;
-  // The sigma of the Landau                                                                      
-  params[1] = 0.1;
-  // The charge parameter                                                                         
-  params[2] = 42;
-  // Pedestal Gaussian Mean                                                                       
-  params[3] = 0;
-  // Pedestal Gaussian Width                                                                      
-  params[4] = 7;
-  // Generalized Poisson                                                          
-  params[5] = 3;
-
-  tuneFit::fitFunc( params);  
-};
+// Just call the Base function
+void tuneFit::theFit() { 
+  tuneFit::fitFunc( params);
+}
 
 void tuneFit::drawHists() {
   leg->AddEntry( test_hist, "Test Hist", "l");
@@ -42,4 +29,4 @@ void tuneFit::drawHists() {
   canv->Print( Form( "%s/tuneFit.png", dir_img));
   canv->SetLogx();
   canv->Print( Form( "%s/tuneFit_log.png", dir_img));
-}
+};
