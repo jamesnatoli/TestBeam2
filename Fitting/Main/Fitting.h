@@ -26,7 +26,7 @@ class Fitting {
   char const *dir_en  = "~/TB_Analysis_17/new_git_code/TestBeam2/energy_hists.root";
   char const *dir_img = "~/TB_Analysis_17/new_git_code/TestBeam2/Fitting/Images";
   double params[5];
-  double ped_params[2];
+  double one[1] = {0};
   float num_events[NUMCHAN] = 
     { 667504,
       800133,
@@ -66,61 +66,38 @@ class Fitting {
   
   // Constructor
   Fitting( const std::string name = "");
-  virtual void theFit() { /* nothing */ };
+  virtual void normFit();
+  virtual void pedFit();
+  virtual void gpFit();
   virtual void drawHists();
-  void work();
-  const std::string getName();
-  virtual double fitFunc(double *x, double *p);
-  virtual double fitFuncPed(double *x, double *p);
-  // These used in pedFit
-  virtual void theTuneFit();
-  virtual void theRealFit();
+  virtual double normFitFunc(double *x, double *p);
+  virtual double pedFitFunc(double *x, double *p);
+  virtual double gpFitFunc(double *x, double *p);
+  const std::string getHist();
+  void setHist( const std::string name);
   TF1* getFit();
   
  private:
   std::string my_name;
 };
 
-class splitFit: public Fitting {
- public:
-  splitFit( const std::string name);
-  void theFit();
-  void drawHists();
-};
-
-class addFit: public Fitting {
- public:
-  addFit( const std::string name);
-  void theFit();
-  void drawHists();
-  double fitFunc( double *x, double *p);
-};
-
 class tuneFit: public Fitting {
  public:
   tuneFit( const std::string name);
-  void theFit();
-  void drawHists();
-  // Avoids hiding
-  double fitFunc( double *x, double *p);
-  void fitFunc( double *p);
+  void normFit();
+  void pedFit();
+  void gpFit();
+  void drawHists( TH1F *hist);
+  void drawHists() { /* avoid hiding */};
 };
 
 class realFit: public Fitting {
  public:
   realFit( const std::string name);
-  void theFit();
-  void drawHists();
+  void normFit();
+  void pedFit();
+  void gpFit();
+  void drawHists( );
 };
 
-class pedFit: public Fitting {
- public:
-  pedFit *fptr;
-  pedFit( const std::string name = "");
-  void theTuneFit();
-  void theRealFit();
-  void drawHists();
-  double fitFunc( double *x, double *p);
-  void otherFitFunc( double *params);
-};
 #endif

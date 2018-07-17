@@ -1,5 +1,12 @@
 #include "Fitting.cpp"
 
+class splitFit: public Fitting {
+ public:
+  splitFit( const std::string name);
+  void theFit();
+  void drawHists();
+};
+
 splitFit::splitFit( const std::string name) : Fitting( name) { };
 
 void splitFit::drawHists() { 

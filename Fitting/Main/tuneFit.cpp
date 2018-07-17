@@ -3,30 +3,33 @@
 // This just calls the superclass constructor
 tuneFit::tuneFit( const std::string name) : Fitting( name) { };
 
-// This function is not used, but we still need to add it because the TF1 object
-// needs this funciton to exit
-double tuneFit::fitFunc( double *x, double *p) { 
-  return Fitting::fitFunc( x, p);
-};
-
-void tuneFit::fitFunc( double *params) {  
-  double one[1] = {0};
-  Fitting::fitFunc( one, params);
-};
-
 // Just call the Base function
-void tuneFit::theFit() { 
-  tuneFit::fitFunc( params);
+void tuneFit::normFit() { 
+  Fitting::normFit();
+  Fitting::normFitFunc( one, Fitting::params);
+  drawHists( test_hist);
 }
 
-void tuneFit::drawHists() {
-  leg->AddEntry( test_hist, "Test Hist", "l");
-  test_hist->SetLineColor( kRed);
+void tuneFit::pedFit() { 
+  Fitting::pedFit();
+  Fitting::pedFitFunc( one, Fitting::params);
+  drawHists( test_ped);
+}
+
+void tuneFit::gpFit() { 
+  Fitting::gpFit();
+  Fitting::gpFitFunc( one, Fitting::params);
+  drawHists( test_hist);
+}
+
+void tuneFit::drawHists( TH1F *histogram) {
+  leg->AddEntry( histogram, "Test Hist", "l");
+  histogram->SetLineColor( kRed);
   Fitting::drawHists();
-  test_hist->Draw("SAME");
+  histogram->Draw("SAME");
   leg->Draw("SAME");
-  char *help = Form( "/Images/%s.png", Fitting::getName().c_str());
-  canv->Print( Form( "%s/tuneFit.png", dir_img));
+  canv->Print( Form( "%s/%s_tuneFit.png", dir_img, Fitting::getHist().c_str()));
   canv->SetLogx();
-  canv->Print( Form( "%s/tuneFit_log.png", dir_img));
+  canv->Print( Form( "%s/%s_tuneFit_log.png", dir_img, Fitting::getHist().c_str()));
+  leg->Clear();
 };

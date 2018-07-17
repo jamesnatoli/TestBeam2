@@ -958,7 +958,7 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_en_bins[i] = new TH1F(TString(Form("en_bins_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
 			       "", 150, 0.0, 600.0);
     hist_en_ped[i] = new TH1F(TString(Form("en_ped_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
-			      "", 150, -100.0, 300.0);
+			      "", 37, -50, 50);
     hist_ts[i] = new TH1F(TString(Form("ts_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
                           10,0.5,10.5);
     hist_tsF[i] = new TH1F(TString(Form("tsF_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
@@ -1149,7 +1149,7 @@ void doEnergyTS(bool debug, const char* dir) {
       canv_ped[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
       canv_ped[i]->SetLogx();
       canv_ped[i]->SetLogy();
-      hist_en_ped[i]->Fit("gaus", "", "", -25.0, 25.0);
+      // hist_en_ped[i]->Fit("gaus", "", "", -25.0, 25.0);
       hist_en_ped[i]->Draw("colz");
       hist_en_ped[i]->Write();
       
@@ -1184,7 +1184,7 @@ void doEnergyTS(bool debug, const char* dir) {
     TLegend* leg_allped = new TLegend(0.2,0.2,0.4,0.4,"","brNDC");
     canv_allped = new TCanvas("Overlayed_Pedestal", "", 500, 500);
     canv_allped->SetLogx();
-    canv_allped->SetLogy();
+    //canv_allped->SetLogy();
     
     for (unsigned int k = 0; k < NUMCHAN; k++) {
       hist_en_ped[k]->SetLineColor(color[k]);

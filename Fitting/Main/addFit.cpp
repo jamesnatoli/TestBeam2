@@ -1,5 +1,13 @@
 #include "Fitting.cpp"
 
+class addFit: public Fitting {
+ public:
+  addFit( const std::string name);
+  void theFit();
+  void drawHists();
+  double fitFunc( double *x, double *p);
+};
+
 addFit::addFit( const std::string name) : Fitting( name) {
   my_fit = new TF1( "Fit Function", Fitting::fptr, (&Fitting::fitFunc), 0, 1000, 6, "Fitting", "fitFunc");
   if (!my_fit) {
