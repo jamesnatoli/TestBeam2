@@ -26,6 +26,8 @@ class Fitting {
   char const *dir_en  = "~/TB_Analysis_17/new_git_code/TestBeam2/energy_hists.root";
   char const *dir_img = "~/TB_Analysis_17/new_git_code/TestBeam2/Fitting/Images";
   double params[5];
+  double ped_params[2];
+  double gp_params[5];
   double one[1] = {0};
   float num_events[NUMCHAN] = 
     { 667504,
@@ -66,6 +68,8 @@ class Fitting {
   
   // Constructor
   Fitting( const std::string name = "");
+  // Use this for making the self pointer
+  // Fitting();
   virtual void normFit();
   virtual void pedFit();
   virtual void gpFit();
@@ -73,6 +77,7 @@ class Fitting {
   virtual double normFitFunc(double *x, double *p);
   virtual double pedFitFunc(double *x, double *p);
   virtual double gpFitFunc(double *x, double *p);
+  const std::string getName();
   const std::string getHist();
   void setHist( const std::string name);
   TF1* getFit();
@@ -94,6 +99,7 @@ class tuneFit: public Fitting {
 class realFit: public Fitting {
  public:
   realFit( const std::string name);
+  realFit( );
   void normFit();
   void pedFit();
   void gpFit();

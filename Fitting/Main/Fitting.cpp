@@ -11,20 +11,21 @@ double Fitting::normFitFunc(double *xcor, double *pars) {
 		     (my_rand->Gaus( (my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]),
 				     TMath::Sqrt(my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]))));
   }
-  if (counter%100 == 0) 
+  if (counter%100 == 0) {
     std::cout << counter << " function calls" << std::endl;
+  }
   return test_hist->GetBinContent( test_hist->FindBin( xcor[0]));
 }
 
 double Fitting::pedFitFunc( double *xcor, double *pars) {
   test_ped->Reset();
-  if (counter%100 == 0)
-    std::cout << counter << " function calls" << std::endl;
-  
+  counter++;
   for (unsigned int i = 0; i < num_ped_events[0]; i++) {
     test_ped->Fill( (my_rand->Gaus( pars[0], pars[1])));
   }
-  counter++;
+  if (counter%100 == 0) {
+    std::cout << counter << " function calls" << std::endl;
+  }
   return test_ped->GetBinContent( test_ped->FindBin( xcor[0]));
 }
 
@@ -62,7 +63,15 @@ Fitting::Fitting( const std::string name) {
   }
 }
 
+/*
+Fitting::Fitting( ) {
+  std::cout << "here " << std::endl;
+  my_name = "test";
+}
+*/
+
 void Fitting::normFit() {
+  std::cout << "entered Fitting::normFit()" << std::endl;
   // The most probably value of the Landau, or is it?                                             
   params[0] = 2.75;
   // The sigma of the Landau                                                                      
@@ -73,27 +82,28 @@ void Fitting::normFit() {
   params[3] = 0;
   // Pedestal Sigma
   params[4] = 7;
+  std::cout << "leaving Fitting::normFit()" << std::endl;
 }
 
 void Fitting::pedFit() {
   // Pedestal Mean
-  params[0] = 0;
+  ped_params[0] = 0;
   // Pedestal Sigma
-  params[1] = 7;
+  ped_params[1] = 7;
 }
 
 // NOT READY YET
 void Fitting::gpFit() {
   // The most probably value of the Landau, or is it?                                             
-  params[0] = 2.75;
+  gp_params[0] = 2.75;
   // The sigma of the Landau                                                                      
-  params[1] = 0.1;
+  gp_params[1] = 0.1;
   // The charge parameter                                                                         
-  params[2] = 42;
+  gp_params[2] = 42;
   // Pedestal Mean
-  params[3] = 0;
+  gp_params[3] = 0;
   // Pedestal Sigma
-  params[4] = 7;
+  gp_params[4] = 7;
 }
 
 void Fitting::drawHists() {
@@ -114,6 +124,10 @@ TF1* Fitting::getFit() {
 
 const std::string Fitting::getHist() {
   return real_hist->GetName();
+}
+
+const std::string Fitting::getName() {
+  return my_name;
 }
 
 void Fitting::setHist( const std::string name) {
