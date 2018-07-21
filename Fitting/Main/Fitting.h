@@ -9,6 +9,9 @@
 #include <TF1.h>
 #include <TLegend.h>
 #include <string>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TFitter.h>
 
 #define NUMCHAN 8
 

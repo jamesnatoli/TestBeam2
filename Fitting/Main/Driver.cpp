@@ -21,6 +21,6 @@ void doRealFit() {
   }
   test_fit->pedFit();
   test_fit->drawHists();
-  delete test_fit;
+  //delete test_fit;
 }
 

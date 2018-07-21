@@ -12,7 +12,7 @@ void tuneFit::normFit() {
 
 void tuneFit::pedFit() { 
   Fitting::pedFit();
-  Fitting::pedFitFunc( one, Fitting::params);
+  Fitting::pedFitFunc( one, Fitting::ped_params);
   drawHists( test_ped);
 }
 
@@ -32,4 +32,5 @@ void tuneFit::drawHists( TH1F *histogram) {
   canv->SetLogx();
   canv->Print( Form( "%s/%s_tuneFit_log.png", dir_img, Fitting::getHist().c_str()));
   leg->Clear();
+  delete canv;
 };

@@ -2,14 +2,12 @@
 
 realFit::realFit( const std::string name) : Fitting( name) {
   Fitting::fptr = new Fitting();
-  my_fit = new TF1( "Fit Function", fptr, (&Fitting::pedFitFunc), 0, 500, 2, "Fitting", "pedFitFunc");
+  my_fit = new TF1( "Fit Function", this, (&Fitting::pedFitFunc), -25, 25, 2, "Fitting", "pedFitFunc");
   if (!my_fit) {
     std::cout << "Danger, Will Robinson (realFit)" << std::endl;
     return;
   }
 }
-
-// realFit::realFit( ) : Fitting( ) { }
 
 void realFit::normFit() {
   std::cout << "entered realFit::normFit" << std::endl;
@@ -40,17 +38,20 @@ void realFit::pedFit() {
   std::cout << "entered realFit::pedFit" << std::endl;
   // Set the Parameters
   // Fitting::pedFit();
-  std::cout << "pls help" << std::endl;
   double ped_params[2] = {0, 0};
-  params[0] = 0;
-  params[1] = 7;
+  ped_params[0] = 0;
+  ped_params[1] = 7;
+  //real_hist->Fit("gaus");
   my_fit->SetParameters( ped_params);
-  std::cout << "pls help me" << std::endl;
+  my_fit->FixParameter( 0, 0);
+  my_fit->SetParLimits(1, 5, 10);
+  //std::cout << "pls help me" << std::endl;
   my_fit->SetParNames( "Ped Gaus Mean ",
 		       "Ped Gaus Sigma");
 
   std::cout << "about to call MINUIT" << std::endl;
-  real_hist->Fit( my_fit, "R0");
+  TFitResultPtr r = real_hist->Fit( my_fit, "S0V");
+  r->Print("V");
   std::cout << "leaving realFit::pedFit" << std::endl;
 }
 

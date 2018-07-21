@@ -17,16 +17,16 @@ double Fitting::normFitFunc(double *xcor, double *pars) {
   return test_hist->GetBinContent( test_hist->FindBin( xcor[0]));
 }
 
-double Fitting::pedFitFunc( double *xcor, double *pars) {
+double Fitting::pedFitFunc( double *xc, double *p) {
   test_ped->Reset();
   counter++;
   for (unsigned int i = 0; i < num_ped_events[0]; i++) {
-    test_ped->Fill( (my_rand->Gaus( pars[0], pars[1])));
+    test_ped->Fill( (my_rand->Gaus( p[0], p[1])));
   }
   if (counter%100 == 0) {
-    std::cout << counter << " function calls" << std::endl;
+    //std::cout << counter << " function calls" << std::endl;
   }
-  return test_ped->GetBinContent( test_ped->FindBin( xcor[0]));
+  return test_ped->GetBinContent( test_ped->FindBin( xc[0]));
 }
 
 // NOT READY YET
