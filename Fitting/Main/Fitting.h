@@ -28,6 +28,7 @@ class Fitting {
   int counter;
   char const *dir_en  = "~/TB_Analysis_17/new_git_code/TestBeam2/energy_hists.root";
   char const *dir_img = "~/TB_Analysis_17/new_git_code/TestBeam2/Fitting/Images";
+  int xup, xlow;
   double params[5];
   double ped_params[2];
   double gp_params[5];
@@ -70,9 +71,9 @@ class Fitting {
       6.79495 };
   
   // Constructor
-  Fitting( const std::string name = "");
+  Fitting( const std::string name );
   // Use this for making the self pointer
-  // Fitting();
+  Fitting();
   virtual void normFit();
   virtual void pedFit();
   virtual void gpFit();

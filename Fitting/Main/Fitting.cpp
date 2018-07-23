@@ -7,8 +7,12 @@ double Fitting::normFitFunc(double *xcor, double *pars) {
   test_hist->Reset();
   counter++;
   for (unsigned int i = 0; i < num_events[0]; i++) {
+    /*
     test_hist->Fill( (my_rand->Gaus( gaus_mean[0], gaus_sigma[0])) + 
 		     (my_rand->Gaus( (my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]),
+				     TMath::Sqrt(my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]))));
+    */
+    test_hist->Fill( (my_rand->Gaus( (my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]),
 				     TMath::Sqrt(my_rand->Poisson( my_rand->Landau( pars[0], pars[1])) * pars[2]))));
   }
   if (counter%100 == 0) {
@@ -46,29 +50,42 @@ double Fitting::gpFitFunc(double *xcor, double *pars) {
 
 // Constructor
 Fitting::Fitting( const std::string name) {
+  std::cout << "entered Fitting::Fitting " << std::endl;
   // Set up the file and the histogram
   my_file = new TFile( dir_en);
-  test_hist = new TH1F("Test Hist", "", 150, 0, 500);
-  test_ped = new TH1F("Test Ped Hist", "", 37, -30, 30);
   real_hist = (TH1F*)my_file->Get( name.c_str());
+  test_ped = new TH1F("Test Ped Hist", "", 37, -30, 30);
+  TAxis *axe = real_hist->GetXaxis();
+  std::cout << "x low = " << axe->GetBinLowEdge( axe->GetFirst()) << std::endl;
+  std::cout << "x up = " << axe->GetBinUpEdge( axe->GetLast()) << std::endl;
+  xlow = axe->GetBinLowEdge( axe->GetFirst());
+  xup = axe->GetBinUpEdge( axe->GetLast());
+  test_hist = new TH1F("Test Hist", "", 150, xlow, xup);
   my_rand = new TRandom();
   leg = new TLegend( 0.2, 0.2, 0.4, 0.4,"","brNDC");  
   my_name = name;
   counter = 0;
 
-  if (!test_hist || !my_rand || !real_hist 
-      || !my_file->IsOpen() || !leg || !test_ped) {
+  if (!test_hist || !my_rand || !real_hist || !my_file->IsOpen() || !leg || !test_ped) {
     std::cout << "Danger, Will Robinson (fitting.cpp)" << std::endl;
     return;
   }
+
+  std::cout << "leaving Fitting::Fitting " << std::endl;
 }
 
-/*
 Fitting::Fitting( ) {
-  std::cout << "here " << std::endl;
+  std::cout << "entered special constructor " << std::endl;
+  my_file = new TFile();
+  real_hist = new TH1F();
+  test_hist = new TH1F();
+  test_ped = new TH1F();
+  my_rand = new TRandom();
+  leg = new TLegend();
+  counter = 0;
   my_name = "test";
+  std::cout << "leaving special constructor" << std::endl;
 }
-*/
 
 void Fitting::normFit() {
   std::cout << "entered Fitting::normFit()" << std::endl;
@@ -79,9 +96,11 @@ void Fitting::normFit() {
   // The charge parameter                                                                         
   params[2] = 42;
   // Pedestal Mean
+  /*
   params[3] = 0;
   // Pedestal Sigma
   params[4] = 7;
+  */
   std::cout << "leaving Fitting::normFit()" << std::endl;
 }
 
