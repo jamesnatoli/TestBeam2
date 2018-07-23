@@ -956,7 +956,7 @@ void doEnergyTS(bool debug, const char* dir) {
   for (unsigned int i = 0; i < channels.size(); ++i) {
     hist_en[i] = new TH1F(TString(Form("en_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",247,edges);
     hist_en_bins[i] = new TH1F(TString(Form("en_bins_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
-			       "", 150, 0.0, 600.0);
+			       "", 600, 0.0, 600.0);
     hist_en_ped[i] = new TH1F(TString(Form("en_ped_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
 			      "", 37, -50, 50);
     hist_ts[i] = new TH1F(TString(Form("ts_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
