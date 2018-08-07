@@ -23,7 +23,7 @@
 #include "edges.h"
 
 // Define these for making a centered plot easier
-#define REG 1
+#define REG 0
 
 // Correction to wire-chamber positions
 const float wc_xab = +0.642158;
@@ -130,16 +130,16 @@ struct channel {
 };
 
 vector<channel> channels = 
-  {{6,23,5,"EJ-260"},
-   {9,23,6,"EJ-260_2P"},
-   {12,23,7,"EJ-200"},
-   // {3,23,4,"Scint-XS"},
-   // {1,23,2,"Scint-XF"},
-   {4,24,4,"SCSN-81F1"},
-   {7,24,5,"SCSN-81F2"},
-   {10,24,6,"SCSN-81F3"},
-   {13,24,7,"SCSN-81F4"},
-   {5,25,4,"SCSN-81S"}
+  {{6,23,5,"EJ_260"},
+   {9,23,6,"EJ_260_2P"},
+   {12,23,7,"EJ_200"},
+   // {3,23,4,"Scint_XS"},
+   // {1,23,2,"Scint_XF"},
+   {4,24,4,"SCSN_81F1"},
+   {7,24,5,"SCSN_81F2"},
+   {10,24,6,"SCSN_81F3"},
+   {13,24,7,"SCSN_81F4"},
+   {5,25,4,"SCSN_81S"}
   };
 
 const string entry[NUMCHAN] = {

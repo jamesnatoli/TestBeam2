@@ -17,6 +17,15 @@ TF1 *my_fit;
 char *my_name;
 int counter;
 
+double mathFunc(double *xcor, double *params) {
+  if (counter%1000 == 0)
+    std::cout << counter << " Function Calls" << std::endl;
+  counter++;
+  float xx = xcor[0];
+  double res = TMath::Gaus( xcor[0], params[0], params[1]);
+  return res;
+}
+
 double fitFunc(double *xcor, double *params) {
   test_hist->Reset();
   if (counter%1000 == 0)
@@ -40,11 +49,12 @@ void drawHists() {
   // leg->AddEntry( test_hist, "Test", "l");
   
   my_fit->SetLineColor( kRed);
+  //my_fit->Draw();
   my_fit->Draw("same");
   leg->AddEntry( my_fit, "Fit", "l");
 
   leg->AddEntry( data_hist, "Data", "l");
-  leg->Draw("same");
+  // leg->Draw("same");
 
   canv->SetLeftMargin( 0.16);
   canv->SetBottomMargin( 0.16);
@@ -57,14 +67,18 @@ void drawHists() {
 }
 
 void setPars( ) {
-  test_hist = new TH1F("Test Hist", "", 6000, 0, 300);
-  data_hist = new TH1F("Data Hist", "", 2400, 0, 300);
+  test_hist = new TH1F("Test Hist", "", 300, 0, 300);
+  data_hist = new TH1F("Data Hist", "", 300, 0, 300);
+  
   canv = new TCanvas("theCanvas", "", 500, 500);
   my_rand = new TRandom();
   leg = new TLegend( 0.2, 0.2, 0.4, 0.4,"","brNDC");  
   double (*funcptr)(double*, double*) = &fitFunc;
-  my_fit = new TF1( "f1", "gaus", 80, 120);
-  //my_fit = new TF1( "Fit Function", funcptr, 80, 120, 2);
+  double (*mathptr)(double*, double*) = &mathFunc;
+  //my_fit = new TF1( "Inline Func", "gaus", 0, 500);
+  //my_fit = new TF1( "Inline Func", "TMath::Gaus( x, [0], [1])", 0, 500);
+  my_fit = new TF1( "Math Func", &mathFunc, 0, 500, 2);
+  //my_fit = new TF1( "Fit Function", funcptr, 50, 150, 2);
   counter = 0;
 
   if (!test_hist || !my_rand || !canv || !my_fit ||
@@ -80,8 +94,8 @@ void setPars( ) {
   fit_params[1] = 13;
 
   my_fit->SetParameters( fit_params);
-  //my_fit->SetParLimits( 0, 95, 105);
-  //my_fit->SetParLimits( 1, 10, 20);
+  // my_fit->SetParLimits( 0, 95, 105);
+  // my_fit->SetParLimits( 1, 10, 20);
 }
 
 void makeData() {
@@ -97,13 +111,14 @@ void exampleFit() {
   setPars();
   makeData();
   std::cout << "here" << std::endl;
-  std::cout << "Precision = " << TVirtualFitter::GetPrecision() << std::endl;
-  //TVirtualFitter::SetPrecision(0.1);
+  // std::cout << "Precision = " << TVirtualFitter::GetPrecision() << std::endl;
+  // TVirtualFitter::SetPrecision(1.0);
+  // std::cout << "Precision = " << TVirtualFitter::GetPrecision() << std::endl;
   // double uno[1] = {0};
   // double p[2] = { 100, 15};
   // fitFunc( uno, p);
-  std::cout << data_hist->GetEntries() << std::endl;
-  data_hist->Fit( my_fit, "R0");  
+  std::cout << "Entries = " << data_hist->GetEntries() << std::endl;
+  data_hist->Fit( my_fit, "0");  
   drawHists();
 }
 
