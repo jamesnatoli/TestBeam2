@@ -1000,7 +1000,7 @@ void doEnergyTS(bool debug, const char* dir) {
   bins = !debug;
   pedestal = !debug;
   time_slice = debug;
-  overlay = !debug;
+  overlay = debug;
 
   // Let us define the histogram and book them
   TH1F *hist_en[NUMCHAN]; // 8 is the number of tiles; channels.size() == 8
@@ -1014,16 +1014,13 @@ void doEnergyTS(bool debug, const char* dir) {
     return;
   }
 
+  unsigned int enbins = 300;
   for (unsigned int i = 0; i < channels.size(); ++i) {
-    hist_en[i] = new TH1F(TString(Form("en_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",247,edges);
-    hist_en_bins[i] = new TH1F(TString(Form("en_bins_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
-			       "", 150, 0.0, 600.0);
-    hist_en_ped[i] = new TH1F(TString(Form("en_ped_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(), 
-			      "", 37, -50, 50);
-    hist_ts[i] = new TH1F(TString(Form("ts_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
-                          10,0.5,10.5);
-    hist_tsF[i] = new TH1F(TString(Form("tsF_%s",channels[i].name.c_str())).ReplaceAll("-","_").Data(),"",
-			   10,0.5,10.5);
+    hist_en[i] = new TH1F( Form("en_%s",channels[i].name.c_str()), "", 247, edges);
+    hist_en_bins[i] = new TH1F( Form("en_bins_%s",channels[i].name.c_str()), "", enbins, 0.0, 600.0);
+    hist_en_ped[i] = new TH1F( Form("en_ped_%s",channels[i].name.c_str()), "", 37, -50, 50);
+    hist_ts[i] = new TH1F( Form("ts_%s",channels[i].name.c_str()), "", 10, 0.5, 10.5);
+    hist_tsF[i] = new TH1F( Form("tsF_%s",channels[i].name.c_str()), "", 10, 0.5, 10.5);
   }
 
   // Now we get the data
@@ -1167,14 +1164,14 @@ void doEnergyTS(bool debug, const char* dir) {
 				       hist_en[i]->GetMean(),
 				       hist_en[i]->GetMeanError()));
       
-      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
-      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.png", channels[i].name.c_str()));
+      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.C", channels[i].name.c_str()));
       delete canv[i];
     }
     
     // ******** STANDARD (EVEN SPACED) BINNING ENERGY HISTOGRAM *******
     if (bins) {
-      canv_bins[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 500, 500);
+      canv_bins[i] = new TCanvas(channels[i].name.c_str(), "", 500, 500);
       canv_bins[i]->SetLogx(0);
       canv_bins[i]->SetLogy();
       hist_en_bins[i]->Draw("colz");

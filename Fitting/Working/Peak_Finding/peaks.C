@@ -99,6 +99,7 @@ void peaks(Int_t np=10) {
    TVirtualFitter::Fitter(h2,10+3*npeaks);
    fit->SetParameters(par);
    fit->SetNpx(1000);
+   fit->SetLineColor( kRed);
    h2->Fit("fit");
    gPad->Print( "peakFinger.png");
    gPad->SetLogy();
