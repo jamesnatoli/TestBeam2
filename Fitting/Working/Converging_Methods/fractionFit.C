@@ -85,7 +85,7 @@ void fractionFit() {
     data->SetLineColor( kBlack);
     data->Draw();
     result->SetLineColor( kRed);
-    result->Draw("same");
+    result->Draw("same, c");
     
     leg->AddEntry( data, "Data", "l");
     leg->AddEntry( result, "Result", "l");

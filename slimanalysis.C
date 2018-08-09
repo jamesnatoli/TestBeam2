@@ -804,7 +804,7 @@ void doMaps(bool debug, const char* dir) {
       hist_effX_rot_cut_nbins[k]->SetLineColor(color[k - 3]);
       hist_effX_rot_cut_nbins[k]->Draw("same, e1");
       hist_effX_rot_cut_nbins[k]->SetMarkerStyle(20);
-      hist_effX_rot_cut_nbins[k]->SetMarkerSize(0.9);
+      hist_effX_rot_cut_nbins[k]->SetMarkerSize(0.5);
       hist_effX_rot_cut_nbins[k]->SetMarkerColor(color[k - 3]);
       hist_effX_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.4, 0.8);
       leg_fingX->AddEntry(hist_effX_rot_cut_nbins[k], entry[k].c_str(), "l");
@@ -840,7 +840,7 @@ void doMaps(bool debug, const char* dir) {
       hist_effY_rot_cut_nbins[k]->SetLineColor(color[k - 3]);
       hist_effY_rot_cut_nbins[k]->Draw("same, e1");
       hist_effY_rot_cut_nbins[k]->SetMarkerStyle(20);
-      hist_effY_rot_cut_nbins[k]->SetMarkerSize(0.9);
+      hist_effY_rot_cut_nbins[k]->SetMarkerSize(0.5);
       hist_effY_rot_cut_nbins[k]->SetMarkerColor(color[k - 3]);
       hist_effY_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.4, 0.75);
       leg_fingY->AddEntry(hist_effY_rot_cut_nbins[k], entry[k].c_str(), "l");
@@ -871,7 +871,7 @@ void doMaps(bool debug, const char* dir) {
       hist_effY_rot_cut_nbins[k]->SetLineColor(color[k]);
       hist_effY_rot_cut_nbins[k]->Draw("same, e1");
       hist_effY_rot_cut_nbins[k]->SetMarkerStyle(20);
-      hist_effY_rot_cut_nbins[k]->SetMarkerSize(0.9);
+      hist_effY_rot_cut_nbins[k]->SetMarkerSize(0.5);
       hist_effY_rot_cut_nbins[k]->SetMarkerColor(color[k]);
       hist_effY_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.4, 0.75);
       hist_effY_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.6, 0.9);
@@ -901,7 +901,7 @@ void doMaps(bool debug, const char* dir) {
       hist_effX_rot_cut_nbins[k]->SetLineColor(color[k]);
       hist_effX_rot_cut_nbins[k]->Draw("same, e1");
       hist_effX_rot_cut_nbins[k]->SetMarkerStyle(20);
-      hist_effX_rot_cut_nbins[k]->SetMarkerSize(0.9);
+      hist_effX_rot_cut_nbins[k]->SetMarkerSize(0.5);
       hist_effX_rot_cut_nbins[k]->SetMarkerColor(color[k]);
       hist_effX_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.4, 0.75);
       hist_effX_rot_cut_nbins[k]->GetYaxis()->SetRangeUser( 0.6, 0.9);
