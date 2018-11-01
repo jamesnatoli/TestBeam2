@@ -72,7 +72,7 @@ void peaks( Int_t np = 10) {
     TString *n = new TString(h->GetName());
     char const *name = n->Data();
     // Only want to fit the "bins" ones
-    if ( !(TString(name).Contains("bins")) || !(TString(name).Contains("F")))
+    if ( !(TString(name).Contains("bins")) ) 
       continue;
 
 
@@ -147,6 +147,9 @@ void peaks( Int_t np = 10) {
     // Create a flag for if the pedestal peak was discarded
     bool noPed = false;
 
+    // This is the xmax for finger fits
+    int finger_max = 300;
+
     for ( p = 0; p < nfound; p++) {
       Double_t xp = sxpeaks[p];
       std::cout << "Checking peak " << p+1 << " at " << xp << std::endl;
@@ -163,14 +166,21 @@ void peaks( Int_t np = 10) {
 
       /*
       if (yp-TMath::Sqrt(yp) < byp ) {
-	/* if (yp-TMath::Sqrt(yp) < fland->Eval(xp)) {
-	   if (yp < fland->Eval(xp)) { 
+	 if (yp-TMath::Sqrt(yp) < fland->Eval(xp)) {
+	 if (yp < fland->Eval(xp)) { 
 	if ( p == 0)
 	  noPed = true;
 	printf( "Eliminated peak %d at %f\n", (p + 1), xp);
 	printf( "Value was %f, background was %f\n", yp-TMath::Sqrt(yp), byp);
 	continue;
       } */
+      
+      // Don't want to add peaks that might be out of range of fit
+      if ( TString(name).Contains("F") && (xp > finger_max)) {
+	printf( "Eliminated peak %d at %f\n", (p + 1), xp);
+	continue;
+      }
+
       // Overwrite par array with new values of "useful" peaks
       par[3*npeaks+3] = yp; // Norm
       par[3*npeaks+4] = xp; // Mean
@@ -180,8 +190,9 @@ void peaks( Int_t np = 10) {
 
     Int_t diff = nfound - npeaks;
     Int_t npars = (npeaks * 3) + 3;
-    //  printf("Eliminated %d peaks that were at background level\n", diff);
-    printf( "Didn't try to eliminate any peaks\n");
+    // printf("Eliminated %d peaks that were at background level\n", diff);
+    // printf( "Didn't try to eliminate any peaks\n");
+    printf( "Eliminated Finger peaks above %d\n", finger_max);
     printf("Found %d useful peaks to fit\n", npeaks);
     printf("Now fitting: Be patient\n");
 
@@ -194,7 +205,7 @@ void peaks( Int_t np = 10) {
     Double_t xmin1 = -1000.0;
     TF1 *fit;
     if ( TString( name).Contains("F"))
-      fit = new TF1( "fit", fpeaks, xmin, 380, npars);
+      fit = new TF1( "fit", fpeaks, xmin, finger_max, npars);
     else
       fit = new TF1( "fit", fpeaks, xmin, xmax, npars);
     std::cout << "We have " << npars << " parameters" << std::endl;
@@ -216,9 +227,9 @@ void peaks( Int_t np = 10) {
     // Constrain the Pedestal Mean
     if ( !noPed) {
       printf("Setting Pedestal Limits\n");
-      fit->SetParLimits( 4, -4, 0);
+      // fit->SetParLimits( 4, -10, 4);
       fit->SetParameter( 5, 6);
-      fit->SetParLimits( 5, 5, 8);
+      fit->SetParLimits( 5, 5, 10);
     }
     // fit->FixParameter( 43, par[43]);
     // fit->FixParameter( 44, par[44]);
