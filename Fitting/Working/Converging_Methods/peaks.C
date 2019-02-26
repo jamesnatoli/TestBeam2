@@ -6,7 +6,7 @@
 // The background is computed and drawn on top of the original histogram.
 //
 // To execute this example, do
-//  root > .x peaks.C  (generate 10 peaks by default)
+
 //  root > .x peaks.C++ (use the compiler)
 //  root > .x peaks.C++(30) (generates 30 peaks)
 //
@@ -28,9 +28,10 @@
 #include "TPolyMarker.h"
 #include "TLine.h"
 #include "TKey.h"
-// #include "TClass.h"
 #include <iostream>
 #include <fstream>
+#include <string.h>
+#include "TString.h"
 
 Int_t npeaks = 30;
 Int_t offset = 0;
@@ -71,21 +72,20 @@ void peaks( Int_t np = 10) {
     // TH1 *h = (TH1*)file->Get("en_bins_SCSN_81S;1");
     TString *n = new TString(h->GetName());
     char const *name = n->Data();
+    char const *legname = &name[8];
     // Only want to fit the "bins" ones
     if ( !(TString(name).Contains("bins")) ) 
       continue;
 
-
     std::cout << "******** ANALYZING " << name << " ********" << std::endl;
-  
     Double_t par[3000];
   
     Int_t p;
-    TCanvas *c1 = new TCanvas("c1", "Fit Results", 750, 750);
-    c1->Divide(1,2);
-    c1->cd(1);
+    TCanvas *c1 = new TCanvas("c1", "Fit Results", 750, 400);
+    //c1->Divide(1,2);
+    //c1->cd(1);
 
-    h->Draw();
+    //h->Draw();
     // Create a copy
     TH1F *h2 = (TH1F*)h->Clone("h2");
     //Use TSpectrum to find the peak candidates
@@ -121,7 +121,7 @@ void peaks( Int_t np = 10) {
     polym->SetMarkerColor( kYellow);
 
     TLegend *leg = new TLegend( 0.5, 0.5, 0.9, 0.9);
-    leg->AddEntry( h, name, "l");
+    leg->AddEntry( h, legname, "l");
     leg->AddEntry( hb, "Background", "l");
     leg->AddEntry( fline, "Linear Fit", "l");
     leg->AddEntry( fland, "Landau Fit" , "l");
@@ -187,6 +187,10 @@ void peaks( Int_t np = 10) {
       par[3*npeaks+5] = 3;  // Sigma
       npeaks++;
     }
+    
+    printf("Printing Fit Finder...\n");
+    c1->Print( Form("Images/%s/peakFinder_%s.png", name, name));
+    c1->Print( Form("Images/%s/peakFinder_%s.C", name, name)); 
 
     Int_t diff = nfound - npeaks;
     Int_t npars = (npeaks * 3) + 3;
@@ -195,8 +199,10 @@ void peaks( Int_t np = 10) {
     printf( "Eliminated Finger peaks above %d\n", finger_max);
     printf("Found %d useful peaks to fit\n", npeaks);
     printf("Now fitting: Be patient\n");
-
-    c1->cd(2);
+    
+    // Create a new canvas for the fit
+    TCanvas *c2 =  new TCanvas("c2", "Fit Results", 750, 400);
+    
     // 3 from the landau lackground + (3 * 14 peaks) ==> 45 params
     Double_t xmin = h2->GetXaxis()->GetBinLowEdge( h2->GetXaxis()->GetFirst());
     std::cout << "xmin = " << xmin << std::endl;
@@ -249,6 +255,7 @@ void peaks( Int_t np = 10) {
 
     fit->SetNpx(1000);
     fit->SetLineColor( kRed);
+    // this also draws the original
     h2->Fit("fit", "R");
 
     // Analyze the fitted parameters
@@ -317,27 +324,27 @@ void peaks( Int_t np = 10) {
     }
     fout.close();
 
-    TLegend *leg1 = new TLegend( 0.7, 0.7, 0.9, 0.9);
+    printf("Printing Images\n");
+    TLegend *leg1 = new TLegend( 0.6, 0.7, 0.9, 0.9);
     TLegend *leg2 = new TLegend( 0.2, 0.2, 0.4, 0.4);
-    leg1->AddEntry( h2, name, "l");
+    leg1->AddEntry( h2, legname, "l");
     leg1->AddEntry( fit, "Fit", "l");
-    leg2->AddEntry( h2, name, "l");
+    leg1->SetTextSize(.06);
+    leg2->AddEntry( h2, legname, "l");
     leg2->AddEntry( fit, "Fit", "l");
+    leg2->SetTextSize(.06);
 
-    c1->Print( Form("Images/%s/peakFinderFull_%s.png", name, name));
-    c1->cd(1);
-    gPad->Print( Form("Images/%s/peakFinder_%s.png", name, name));
-    c1->cd(2);
     leg1->Draw();
-    gPad->Print( Form("Images/%s/peakFit_%s.png", name, name));
+    c2->Print( Form("Images/%s/peakFit_%s.png", name, name));
+    c2->Print( Form("Images/%s/peakFit_%s.C", name, name));
     delete leg1;
-    gPad->SetLogy();
+    c2->SetLogy();
     leg2->Draw();
-    gPad->SetLogx();
-    gPad->Print( Form("Images/%s/peakFit_logxy_%s.png", name, name));
-    gPad->SetLogx(0);
-    gPad->Print( Form("Images/%s/peakFit_logy_%s.png", name, name));
+    c2->SetLogx();
+    c2->Print( Form("Images/%s/peakFit_logxy_%s.png", name, name));
+    c2->Print( Form("Images/%s/peakFit_logxy_%s.C", name, name));
+    c2->SetLogx(0);
+    c2->Print( Form("Images/%s/peakFit_logy_%s.png", name, name));
+    c2->Print( Form("Images/%s/peakFit_logy_%s.C", name, name));
   }
 }
-
-    
