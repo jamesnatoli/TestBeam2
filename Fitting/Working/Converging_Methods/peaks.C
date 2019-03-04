@@ -62,8 +62,12 @@ void peaks( Int_t np = 10) {
   // Create an iterator for the histogram
   TIter next( file->GetListOfKeys());
   TKey *key;
+  int counter = 0;
+  std::map<std::string, double_t> lyields;
   // Loop over all of the tiles
   while ((key = (TKey*)next())) {
+    //if (counter == 1)
+    //break;
     // TClass *cl = gROOT->GetClass(key->GetClassName());
     // if (!cl->InheritsFrom("TH1")) 
     //   continue;
@@ -82,8 +86,6 @@ void peaks( Int_t np = 10) {
   
     Int_t p;
     TCanvas *c1 = new TCanvas("c1", "Fit Results", 750, 400);
-    //c1->Divide(1,2);
-    //c1->cd(1);
 
     //h->Draw();
     // Create a copy
@@ -150,16 +152,20 @@ void peaks( Int_t np = 10) {
     // This is the xmax for finger fits
     int finger_max = 300;
 
+    // This loop no longer eliminates any peaks, we found that the peak finder rarely messes up
+    // and therefore everything it thinks is a peak we keep
+    // Now, this simply takes the peak parameters from TSpectrum and loads them to the 
+    // parameter array for the TF1 fit
+    // For the normalization, we use the value of the bin at the point where TSPectrum
+    // told us there was one
     for ( p = 0; p < nfound; p++) {
       Double_t xp = sxpeaks[p];
       std::cout << "Checking peak " << p+1 << " at " << xp << std::endl;
 
       // Get the bin number of where the peak is
       Int_t bin = h->GetXaxis()->FindBin(xp);
-
       // Get the y value of that bin
       Double_t yp = h->GetBinContent(bin);
-
       // Compare with the Landau, rather than the line to get more peaks
       Int_t bbin = hb->GetXaxis()->FindBin( xp);
       Double_t byp = hb->GetBinContent( bbin);
@@ -188,7 +194,7 @@ void peaks( Int_t np = 10) {
       npeaks++;
     }
     
-    printf("Printing Fit Finder...\n");
+    printf("Printing peakFinder Images...\n");
     c1->Print( Form("Images/%s/peakFinder_%s.png", name, name));
     c1->Print( Form("Images/%s/peakFinder_%s.C", name, name)); 
 
@@ -210,6 +216,7 @@ void peaks( Int_t np = 10) {
     std::cout << "xmax = " << xmax << std::endl;
     Double_t xmin1 = -1000.0;
     TF1 *fit;
+    // 2 possible fits with differing domains
     if ( TString( name).Contains("F"))
       fit = new TF1( "fit", fpeaks, xmin, finger_max, npars);
     else
@@ -226,9 +233,9 @@ void peaks( Int_t np = 10) {
     fit->SetParName( 0, "BKG Norm");
     fit->SetParName( 1, "BKG MPV ");
     fit->SetParName( 2, "BKG Sig ");
-    // fit->SetParName( 3, "Ped Norm");
-    // fit->SetParName( 4, "Ped Mean");
-    // fit->SetParName( 5, "Ped Sig ");
+    fit->SetParName( 3, "Ped Norm");
+    fit->SetParName( 4, "Ped Mean");
+    fit->SetParName( 5, "Ped Sig ");
 
     // Constrain the Pedestal Mean
     if ( !noPed) {
@@ -241,6 +248,7 @@ void peaks( Int_t np = 10) {
     // fit->FixParameter( 44, par[44]);
 
     Int_t ngaus = 1;
+    /*
     for (Int_t i = 3; i < fit->GetNpar(); i++){
       if (i%3 == 0)
 	fit->SetParName( i, Form("Gaus %d Norm", ngaus));
@@ -251,8 +259,9 @@ void peaks( Int_t np = 10) {
 	ngaus++;
       }
     }
-
-
+    */
+    
+    // THE BIG FINALE
     fit->SetNpx(1000);
     fit->SetLineColor( kRed);
     // this also draws the original
@@ -264,7 +273,7 @@ void peaks( Int_t np = 10) {
     std::vector<Double_t> means;
     std::vector<Double_t> widths;
     // Label the Gaussians
-    for (Int_t i = 3; i < fit->GetNpar(); i++){
+    for (Int_t i = 6; i < fit->GetNpar(); i++){
       if (i%3 == 0) {
 	fit->SetParName( i, Form("Gaus %d Norm", ngaus));
 	norms.push_back( fit->GetParameter(i));
@@ -279,24 +288,40 @@ void peaks( Int_t np = 10) {
 	ngaus++;
       }
     }
-  
+    
     std::cout << std::endl << "Distance between peaks" << std::endl;
     for (unsigned int i = 0; i < means.size() - 1; i++)
       std::cout << i+1 << " and " << i+2 << " = " << means[i + 1] - means[i] << std::endl;
-
+      
+    double_t sub = 0, total = 0; 
+    bool pedExists = false;
     std::cout << std::endl << "Means" << std::endl;
-    for (unsigned int i = 0; i < means.size(); i++)
+    for (unsigned int i = 0; i < means.size(); i++) {
       std::cout << "Peak " << i+1 << " Mean: " << means[i] << std::endl;
+      if (means[i] > 40) {
+	if (pedExists)
+	  sub += (fit->Eval( means[i]) * (i));
+	else // if ped isn't there, need to add 1 bc first peak has i=0
+	  sub += (fit->Eval( means[i]) * (i + 1));
+	total += fit->Eval( means[i]);
+      }
+      else {
+	pedExists = true;
+	printf("Did NOT include peak %d in Light Yield calc\n", (i+1));
+      }
+    }
+    lyields[legname] = sub / total;
+    printf("LIGHT YIELD = %f", sub/total);
 
     std::cout << std::endl << "Normalizations" << std::endl;
     for (unsigned int i = 0; i < norms.size(); i++)
       std::cout << "Peak " << i+1 << " Norm: " << norms[i] << std::endl;
-  
+
     std::cout << std::endl << "Widths" << std::endl;
     for (unsigned int i = 0; i < widths.size(); i++)
       std::cout << "Peak " << i+1 << " Width: " << widths[i] << std::endl;
     std::cout << std::endl;
-
+    
     TFile *output = new TFile( Form("Root_Results/fitResults_%s.root", name), "RECREATE");
     if (output->IsOpen()) {
       printf("Writing to ROOT file \n");
@@ -320,8 +345,8 @@ void peaks( Int_t np = 10) {
 	   << setw(20) << left << fit->GetParError(i) 
 	   << setw(20) << left << (fit->GetParError(i)/fit->GetParameter(i))*100
 	   << std::endl;
-    
     }
+    fout << "LIGHT YIELD ===> " << lyields[legname] << std::endl;
     fout.close();
 
     printf("Printing Images\n");
@@ -346,5 +371,13 @@ void peaks( Int_t np = 10) {
     c2->SetLogx(0);
     c2->Print( Form("Images/%s/peakFit_logy_%s.png", name, name));
     c2->Print( Form("Images/%s/peakFit_logy_%s.C", name, name));
+    //counter ++;
+  }
+  // Print the light yields all nice and neat
+  std::cout << "LIGHT YIELDS FOR ALL TILES" << std::endl;
+  std::map<std::string, double_t>::iterator it = lyields.begin();
+  while (it != lyields.end()) {
+    std::cout << it->first << " :: " << it->second << std::endl;
+    it++;
   }
 }
