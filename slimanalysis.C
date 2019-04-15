@@ -86,10 +86,10 @@ void doMaps(bool debug, const char* dir) {
   bool crudtest, denXY_rot_cut, pedXY_rot_cut, noisetest, overlay, center;
   effX_cut = effY_cut = debug;
   effX_rot_cut = effY_rot_cut = debug;
-  effX_rot_cut_nbins = effY_rot_cut_nbins = !debug;
+  effX_rot_cut_nbins = effY_rot_cut_nbins = debug;
   effX = effY = debug;
   effX_rot = effY_rot = debug;
-  eff_rot = debug;
+  eff_rot = !debug;
   eff = debug;
   denXY_rot_cut = debug;
   overlay = true;
@@ -105,6 +105,7 @@ void doMaps(bool debug, const char* dir) {
   // Let us define the histogram and book them
   TH2F *hist_eff[NUMCHAN];
   TH2F *hist_den[NUMCHAN];
+  TH2F *hist_eff_cmb[NUMCHAN];
   TH1F *hist_effX[NUMCHAN]; 
   TH1F *hist_denX[NUMCHAN];
   TH1F *hist_effX_cut[NUMCHAN];
@@ -151,6 +152,8 @@ void doMaps(bool debug, const char* dir) {
     // Horrible way to replace - with _ in the channel's name, so that we can print canvas to .C file
     // and obtain a usable macro
     hist_eff[i] = new TH2F(TString(Form("%s_eff",channels[i].name.c_str())).ReplaceAll("-","_").Data(),
+                           "",350,-75,75,350,-75,75);
+    hist_eff_cmb[i] = new TH2F(TString(Form("%s_eff_cmb",channels[i].name.c_str())).ReplaceAll("-","_").Data(),
                            "",350,-75,75,350,-75,75);
     hist_den[i] = new TH2F(TString(Form("%s_den",channels[i].name.c_str())).ReplaceAll("-","_").Data(),
                            "",350,-75,75,350,-75,75);
@@ -278,6 +281,7 @@ void doMaps(bool debug, const char* dir) {
     // This fills the variables that had addresses set previously
     chain->GetEntry(j);
     
+    // Get the locations of the hits from the wire chambers
     double x_hit = intercept_X + z_ex*slope_X;
     double y_hit = intercept_Y + z_ex*slope_Y;
     
@@ -290,11 +294,6 @@ void doMaps(bool debug, const char* dir) {
     for (unsigned int i = 0; i < channels.size(); ++i) {
       // For Finger tiles
       if (run < 3410 && i >= 3 && i <= 6) {
-	/*
-	if (i == 3) {
-	  missed++;
-	}
-	*/
 	continue;
       }
       
@@ -312,8 +311,8 @@ void doMaps(bool debug, const char* dir) {
       
       double energy_ps = 0;
       for (auto ts : TIMESLICES)
-        energy_ps+=pulse[channels[i].chan][ts];
-      energy_ps-=TIMESLICES.size()*ped[channels[i].chan];
+        energy_ps += pulse[channels[i].chan][ts];
+      energy_ps -= TIMESLICES.size()*ped[channels[i].chan];
       
       if (energy_ps>25) {
         hist_eff[i]->Fill(x_hit,y_hit);
@@ -400,6 +399,8 @@ void doMaps(bool debug, const char* dir) {
   
   // here I should plot the efficiency maps, after some beautification
   TCanvas *canv[NUMCHAN], *canvX[NUMCHAN], *canvY[NUMCHAN];
+  // Alternate color palette for the 2D Eff
+  TCanvas *canv_cmb[NUMCHAN];
   // Plot the rotated hists on these canvases
   TCanvas *canv_rot[NUMCHAN], *canvX_rot[NUMCHAN], *canvY_rot[NUMCHAN];
   // Test Canvases for seeing if cutting crud works
@@ -431,9 +432,28 @@ void doMaps(bool debug, const char* dir) {
     hist_eff[i]->GetXaxis()->SetTitle("x [mm]");
     hist_eff[i]->GetYaxis()->SetTitle("y [mm]");
 
+    // CMB-like plot with different palette
+    hist_eff_cmb[i] = (TH2F*)hist_eff[i]->Clone();
+
+    // Define Color Palette
+    const Int_t num = 3;
+    // These are parameters for "kBird", the palette that we use originaly
+    // Double_t red[num]   = { 0.2082, 0.0592, 0.0780, 0.0232, 0.1802, 0.5301, 0.8186, 0.9956, 0.9764};
+    // Double_t green[num] = { 0.1664, 0.3599, 0.5041, 0.6419, 0.7178, 0.7492, 0.7328, 0.7862, 0.9832};
+    // Double_t blue[num]  = { 0.5293, 0.8684, 0.8385, 0.7914, 0.6425, 0.4662, 0.3499, 0.1968, 0.0539};
+    Double_t red[num] =   { 0.00, 0.00, 1.00};
+    Double_t green[num] = { 0.00, 1.00, 1.00};
+    Double_t blue[num] =  { 1.00, 0.00, 0.00};
+    // Double_t length[num] = { 0.00, 0.30, 0.60, 0.90, 0.92, 0.94, 0.96, 0.98, 1.00};
+    Double_t length[num] = { 0.00, 0.90, 1.00};
+    Int_t nb = 255;
+    TColor::CreateGradientColorTable( num, length, red, green, blue, nb);
+
     if ( eff) {    
       canv[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 550, 500);
       canv[i]->SetRightMargin(canv[i]->GetLeftMargin());
+
+      
 
       hist_eff[i]->Draw("colz");
       // Draw Lines

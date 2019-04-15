@@ -21,6 +21,8 @@
 #include <initializer_list>
 #include <THStack.h>
 #include "edges.h"
+#include <TStyle.h>
+#include <TColor.h>
 
 // Define these for making a centered plot easier
 #define REG 0
