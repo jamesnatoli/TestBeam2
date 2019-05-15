@@ -82,7 +82,7 @@ void doMaps(bool debug, const char* dir) {
   };
 
   bool eff, eff_rot, effX, effY, effX_rot, effY_rot, effX_cut, effY_cut, 
-    effX_rot_cut, effY_rot_cut, effX_rot_cut_nbins, effY_rot_cut_nbins;
+    effX_rot_cut, effY_rot_cut, effX_rot_cut_nbins, effY_rot_cut_nbins, cmb;
   bool crudtest, denXY_rot_cut, pedXY_rot_cut, noisetest, overlay, center;
   effX_cut = effY_cut = debug;
   effX_rot_cut = effY_rot_cut = debug;
@@ -90,7 +90,8 @@ void doMaps(bool debug, const char* dir) {
   effX = effY = debug;
   effX_rot = effY_rot = debug;
   eff_rot = !debug;
-  eff = debug;
+  eff = !debug;
+  cmb = !debug;
   denXY_rot_cut = debug;
   overlay = true;
   crudtest = false;
@@ -425,6 +426,8 @@ void doMaps(bool debug, const char* dir) {
     fid_line->SetLineWidth(2);
     fid_line->SetLineStyle(kDashed);
     
+    // Set Palette to kBird for UMD Style
+    gStyle->SetPalette(kBird);
     
     // Divide to get efficiency
     hist_eff[i]->Divide(hist_eff[i],hist_den[i],1,1,"b");
@@ -432,28 +435,9 @@ void doMaps(bool debug, const char* dir) {
     hist_eff[i]->GetXaxis()->SetTitle("x [mm]");
     hist_eff[i]->GetYaxis()->SetTitle("y [mm]");
 
-    // CMB-like plot with different palette
-    hist_eff_cmb[i] = (TH2F*)hist_eff[i]->Clone();
-
-    // Define Color Palette
-    const Int_t num = 3;
-    // These are parameters for "kBird", the palette that we use originaly
-    // Double_t red[num]   = { 0.2082, 0.0592, 0.0780, 0.0232, 0.1802, 0.5301, 0.8186, 0.9956, 0.9764};
-    // Double_t green[num] = { 0.1664, 0.3599, 0.5041, 0.6419, 0.7178, 0.7492, 0.7328, 0.7862, 0.9832};
-    // Double_t blue[num]  = { 0.5293, 0.8684, 0.8385, 0.7914, 0.6425, 0.4662, 0.3499, 0.1968, 0.0539};
-    Double_t red[num] =   { 0.00, 0.00, 1.00};
-    Double_t green[num] = { 0.00, 1.00, 1.00};
-    Double_t blue[num] =  { 1.00, 0.00, 0.00};
-    // Double_t length[num] = { 0.00, 0.30, 0.60, 0.90, 0.92, 0.94, 0.96, 0.98, 1.00};
-    Double_t length[num] = { 0.00, 0.90, 1.00};
-    Int_t nb = 255;
-    TColor::CreateGradientColorTable( num, length, red, green, blue, nb);
-
     if ( eff) {    
       canv[i] = new TCanvas(TString(channels[i].name.c_str()).ReplaceAll("-","_").Data(), "", 550, 500);
       canv[i]->SetRightMargin(canv[i]->GetLeftMargin());
-
-      
 
       hist_eff[i]->Draw("colz");
       // Draw Lines
@@ -476,7 +460,7 @@ void doMaps(bool debug, const char* dir) {
       canv[i]->Print(Form("Original_Images/Efficiency_Maps_2D/efficiency_map_%s.png",channels[i].name.c_str()));
       canv[i]->Print(Form("Original_Images/Efficiency_Maps_2D/efficiency_map_%s.C",channels[i].name.c_str()));
     }
-    
+
     // ******* 2D ROTATED EFFICIENCY *******
     TLine* fid_line_rot = new TLine();
     fid_line_rot -> SetLineWidth(2);
@@ -519,6 +503,26 @@ void doMaps(bool debug, const char* dir) {
 
       canv_rot[i] -> Print(Form("Rotated_Images/Efficiency_Maps_2D/efficiency_map_rot%s.png", channels[i].name.c_str()));
       canv_rot[i] -> Print(Form("Rotated_Images/Efficiency_Maps_2D/efficiency_map_rot%s.C", channels[i].name.c_str()));
+    }
+
+    // ******** CMB-LIKE PLOT OF 2D ROTATED EFFICIENCY ********
+    if (cmb) {
+      // Define Color Palette
+      const Int_t num = 9;
+      // These are parameters for "kBird", the palette that we use originaly
+      Double_t red[num]   = { 0.2082, 0.0592, 0.0780, 0.0232, 0.1802, 0.5301, 0.8186, 0.9956, 0.9764};
+      Double_t green[num] = { 0.1664, 0.3599, 0.5041, 0.6419, 0.7178, 0.7492, 0.7328, 0.7862, 0.9832};
+      Double_t blue[num]  = { 0.5293, 0.8684, 0.8385, 0.7914, 0.6425, 0.4662, 0.3499, 0.1968, 0.0539};
+      Double_t length[num] = { 0.00, 0.27, 0.54, 0.95, 0.96, 0.97, 0.98, 0.99, 1.00};
+      // Double_t red[num] =   { 0.00, 0.00, 1.00};
+      // Double_t green[num] = { 0.00, 1.00, 1.00};
+      // Double_t blue[num] =  { 1.00, 0.00, 0.00};
+      // Double_t length[num] = { 0.00, 0.90, 1.00};
+      Int_t nb = 255;
+      TColor::CreateGradientColorTable( num, length, red, green, blue, nb);
+      canv_cmb[i] = (TCanvas*)canv_rot[i]->DrawClone();
+      canv_cmb[i]->Print(Form("Rotated_Images/Efficiency_Maps_2D/CMB_Plots/efficiency_map_rotcmb%s.png",channels[i].name.c_str()));
+      canv_cmb[i]->Print(Form("Rotated_Images/Efficiency_Maps_2D/CMB_Plots/efficiency_map_rotcmb%s.C",channels[i].name.c_str()));
     }
 
     // ******* X EFFICIENCY *******
@@ -997,13 +1001,14 @@ void doMaps(bool debug, const char* dir) {
       canvT_Yrot[i] -> Print( Form( "Crud_test/crud_Ytest%s.png", channels[i].name.c_str()));
     }
   }
-
+  
+  // If you want to change between regular and other fiducial areas, change the variable in "slimanalysis.h"
 #if REG
   cout << "using REGULAR fiducial area" << endl;
 #else
   cout << "using OTHER fiducial area" << endl;
 #endif
-
+  
 } // void doMaps(...
 
 // Energy; time-slice

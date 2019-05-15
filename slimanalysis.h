@@ -25,7 +25,7 @@
 #include <TColor.h>
 
 // Define these for making a centered plot easier
-#define REG 0
+#define REG 1
 
 // Correction to wire-chamber positions
 const float wc_xab = +0.642158;
