@@ -1043,13 +1043,13 @@ void doEnergyTS(bool debug, const char* dir) {
     cout << "Something went wrong..." << endl;
     return;
   }
-
+  debug = true;
   bool reg, bins, pedestal, time_slice, overlay;
   reg = !debug;
   bins = !debug;
   pedestal = !debug;
   time_slice = debug;
-  overlay = debug;
+  overlay = !debug;
 
   // Let us define the histogram and book them
   TH1F *hist_en[NUMCHAN]; // 8 is the number of tiles; channels.size() == 8
@@ -1065,11 +1065,11 @@ void doEnergyTS(bool debug, const char* dir) {
 
   unsigned int enbins = 300;
   for (unsigned int i = 0; i < channels.size(); ++i) {
-    hist_en[i] = new TH1F( Form("en_%s",channels[i].name.c_str()), "", 247, edges);
-    hist_en_bins[i] = new TH1F( Form("en_bins_%s",channels[i].name.c_str()), "", enbins, 0.0, 600.0);
-    hist_en_ped[i] = new TH1F( Form("en_ped_%s",channels[i].name.c_str()), "", 37, -50, 50);
-    hist_ts[i] = new TH1F( Form("ts_%s",channels[i].name.c_str()), "", 10, 0.5, 10.5);
-    hist_tsF[i] = new TH1F( Form("tsF_%s",channels[i].name.c_str()), "", 10, 0.5, 10.5);
+    hist_en[i] = new TH1F( Form("en_%s", channels[i].name.c_str()), "", 247, edges);
+    hist_en_bins[i] = new TH1F( Form("en_bins_%s", channels[i].name.c_str()), "", enbins, 0.0, 600.0);
+    hist_en_ped[i] = new TH1F( Form("en_ped_%s", channels[i].name.c_str()), "", 37, -50, 50);
+    hist_ts[i] = new TH1F( Form("ts_%s", channels[i].name.c_str()), "", 10, 0.5, 10.5);
+    hist_tsF[i] = new TH1F( Form("tsF_%s", channels[i].name.c_str()), "", 10, 0.5, 10.5);
   }
 
   // Now we get the data
@@ -1098,7 +1098,7 @@ void doEnergyTS(bool debug, const char* dir) {
   chain->SetBranchAddress("run", &run);
 
   for (unsigned int i=0;i<chain->GetEntries();++i) {
-    if (debug && i>1000)
+    if (!debug && i>1000)
       continue;
 
 
@@ -1224,7 +1224,7 @@ void doEnergyTS(bool debug, const char* dir) {
       canv_bins[i] = new TCanvas(channels[i].name.c_str(), "", 500, 500);
       canv_bins[i]->SetLogx(0);
       canv_bins[i]->SetLogy();
-      hist_en_bins[i]->Draw("colz");
+
       hist_en_bins[i]->Write();
       
       TLatex label_bins;
@@ -1382,6 +1382,7 @@ void doEnergyTS(bool debug, const char* dir) {
       if (i > 2 || i < 7)
 	hist_tsF[i]->Draw("hist,same");
     }
+    hist_tsF[max_indexF]->Draw("axis, same");
     
     leg_fing->Draw("same");
     hist_tsF[max_indexF]->Draw("axis,same");
