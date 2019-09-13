@@ -68,6 +68,7 @@ void doAlignmentPlots(bool debug, const char* dir) {
     leg[i]->Draw("same");
     hist[i]->Draw("axis,same");
     canv[i]->Print(Form("Alignment_Plots/align_%d.png",i));
+    canv[i]->Print(Form("Alignment_Plots/align_%d.pdf",i));
   }
 }
 
@@ -84,20 +85,21 @@ void doMaps(bool debug, const char* dir) {
   bool eff, eff_rot, effX, effY, effX_rot, effY_rot, effX_cut, effY_cut, 
     effX_rot_cut, effY_rot_cut, effX_rot_cut_nbins, effY_rot_cut_nbins, cmb;
   bool crudtest, denXY_rot_cut, pedXY_rot_cut, noisetest, overlay, center;
-  effX_cut = effY_cut = debug;
-  effX_rot_cut = effY_rot_cut = debug;
-  effX_rot_cut_nbins = effY_rot_cut_nbins = debug;
-  effX = effY = debug;
-  effX_rot = effY_rot = debug;
-  eff_rot = !debug;
+  debug = true;
+  effX_cut = effY_cut = !debug;
+  effX_rot_cut = effY_rot_cut = !debug;
+  effX_rot_cut_nbins = effY_rot_cut_nbins = !debug;
+  effX = effY = !debug;
+  effX_rot = effY_rot = !debug;
+  // Cmb needs rot to work
+  eff_rot = cmb = debug;
   eff = !debug;
-  cmb = !debug;
-  denXY_rot_cut = debug;
-  overlay = true;
+  denXY_rot_cut = !debug;
+  overlay = false; // true;
   crudtest = false;
   noisetest = false;
   center = false;
-  pedXY_rot_cut = debug;
+  pedXY_rot_cut = !debug;
 
   // Fill the Rotated Arrays
   // This fills both the Theta array, and the fiducial arrays
@@ -275,7 +277,7 @@ void doMaps(bool debug, const char* dir) {
   int missed = 0;
   // There are 1720742 events (muons)
   for (unsigned int j = 0; j < chain->GetEntries(); ++j) {
-    if (debug && j > 1000)
+    if (!debug && j > 1000)
       continue;
     
     // Do the alignment
@@ -458,6 +460,7 @@ void doMaps(bool debug, const char* dir) {
       gPad->SetGrid();
       
       canv[i]->Print(Form("Original_Images/Efficiency_Maps_2D/efficiency_map_%s.png",channels[i].name.c_str()));
+      canv[i]->Print(Form("Original_Images/Efficiency_Maps_2D/efficiency_map_%s.pdf",channels[i].name.c_str()));
       canv[i]->Print(Form("Original_Images/Efficiency_Maps_2D/efficiency_map_%s.C",channels[i].name.c_str()));
     }
 
@@ -502,6 +505,7 @@ void doMaps(bool debug, const char* dir) {
       label_rot.DrawLatex(0.8,0.875, entry[i].c_str());
 
       canv_rot[i] -> Print(Form("Rotated_Images/Efficiency_Maps_2D/efficiency_map_rot%s.png", channels[i].name.c_str()));
+      canv_rot[i] -> Print(Form("Rotated_Images/Efficiency_Maps_2D/efficiency_map_rot%s.pdf", channels[i].name.c_str()));
       canv_rot[i] -> Print(Form("Rotated_Images/Efficiency_Maps_2D/efficiency_map_rot%s.C", channels[i].name.c_str()));
     }
 
@@ -513,15 +517,13 @@ void doMaps(bool debug, const char* dir) {
       Double_t red[num]   = { 0.2082, 0.0592, 0.0780, 0.0232, 0.1802, 0.5301, 0.8186, 0.9956, 0.9764};
       Double_t green[num] = { 0.1664, 0.3599, 0.5041, 0.6419, 0.7178, 0.7492, 0.7328, 0.7862, 0.9832};
       Double_t blue[num]  = { 0.5293, 0.8684, 0.8385, 0.7914, 0.6425, 0.4662, 0.3499, 0.1968, 0.0539};
-      Double_t length[num] = { 0.00, 0.27, 0.54, 0.95, 0.96, 0.97, 0.98, 0.99, 1.00};
-      // Double_t red[num] =   { 0.00, 0.00, 1.00};
-      // Double_t green[num] = { 0.00, 1.00, 1.00};
-      // Double_t blue[num] =  { 1.00, 0.00, 0.00};
-      // Double_t length[num] = { 0.00, 0.90, 1.00};
+      Double_t length[num] = { 0.00, 0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0};
       Int_t nb = 255;
       TColor::CreateGradientColorTable( num, length, red, green, blue, nb);
+      
       canv_cmb[i] = (TCanvas*)canv_rot[i]->DrawClone();
       canv_cmb[i]->Print(Form("Rotated_Images/Efficiency_Maps_2D/CMB_Plots/efficiency_map_rotcmb%s.png",channels[i].name.c_str()));
+      canv_cmb[i]->Print(Form("Rotated_Images/Efficiency_Maps_2D/CMB_Plots/efficiency_map_rotcmb%s.pdf",channels[i].name.c_str()));
       canv_cmb[i]->Print(Form("Rotated_Images/Efficiency_Maps_2D/CMB_Plots/efficiency_map_rotcmb%s.C",channels[i].name.c_str()));
     }
 
@@ -543,6 +545,7 @@ void doMaps(bool debug, const char* dir) {
       labelX.DrawLatex(0.92,0.875, entry[i].c_str());
       
       canvX[i]->Print(Form("Original_Images/Efficiency_Maps_X/efficiency_X_%s.png", channels[i].name.c_str()));
+      canvX[i]->Print(Form("Original_Images/Efficiency_Maps_X/efficiency_X_%s.pdf", channels[i].name.c_str()));
       canvX[i]->Print(Form("Original_Images/Efficiency_Maps_X/efficiency_X_%s.C", channels[i].name.c_str()));
     }
 
@@ -564,6 +567,7 @@ void doMaps(bool debug, const char* dir) {
       labelX.DrawLatex(0.92,0.875,(entry[i] + " Cut").c_str() );
       
       canvX_cut[i]->Print(Form("Original_Images/Efficiency_Maps_X/No_Crud/efficiency_X_cut_%s.png", channels[i].name.c_str()));
+      canvX_cut[i]->Print(Form("Original_Images/Efficiency_Maps_X/No_Crud/efficiency_X_cut_%s.pdf", channels[i].name.c_str()));
       canvX_cut[i]->Print(Form("Original_Images/Efficiency_Maps_X/No_Crud/efficiency_X_cut_%s.C", channels[i].name.c_str()));
     }
     
@@ -584,6 +588,7 @@ void doMaps(bool debug, const char* dir) {
       labelX_rot.DrawLatex(0.92, 0.875, (entry[i] + " Rot").c_str());
       
       canvX_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/efficiency_X_rot%s.png", channels[i].name.c_str()));
+      canvX_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/efficiency_X_rot%s.pdf", channels[i].name.c_str()));
       canvX_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/efficiency_X_rot%s.C", channels[i].name.c_str()));      
     }
 
@@ -605,6 +610,7 @@ void doMaps(bool debug, const char* dir) {
       labelX_rot_cut.DrawLatex(0.92, 0.875, (entry[i] + " Cut & Rot").c_str());
       
       canvX_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/efficiency_X_rot_cut_%s.png", channels[i].name.c_str()));
+      canvX_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/efficiency_X_rot_cut_%s.pdf", channels[i].name.c_str()));
       canvX_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/efficiency_X_rot_cut_x%s.C", channels[i].name.c_str()));
     }
     
@@ -641,6 +647,7 @@ void doMaps(bool debug, const char* dir) {
       labelX_rot_cut_nbins.DrawLatex(0.5, 0.3, label.c_str());
       
       canvX_rot_cut_nbins[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/Special_Bins/%s.png", my_name.c_str()));
+      canvX_rot_cut_nbins[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/Special_Bins/%s.pdf", my_name.c_str()));
       canvX_rot_cut_nbins[i]->Print(Form("Rotated_Images/Efficiency_Maps_X/No_Crud/Special_Bins/%s.C", my_name.c_str()));
     }
     
@@ -662,6 +669,7 @@ void doMaps(bool debug, const char* dir) {
       labelY.DrawLatex(0.92,0.875,entry[i].c_str());
       
       canvY[i]->Print(Form("Original_Images/Efficiency_Maps_Y/efficiency_Y_%s.png", channels[i].name.c_str()));
+      canvY[i]->Print(Form("Original_Images/Efficiency_Maps_Y/efficiency_Y_%s.pdf", channels[i].name.c_str()));
       canvY[i]->Print(Form("Original_Images/Efficiency_Maps_Y/efficiency_Y_%s.C", channels[i].name.c_str()));
     }
 
@@ -683,6 +691,7 @@ void doMaps(bool debug, const char* dir) {
       labelY.DrawLatex(0.92,0.875, (entry[i] + " Cut").c_str());
       
       canvY_cut[i]->Print(Form("Original_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_cut_%s.png", channels[i].name.c_str()));
+      canvY_cut[i]->Print(Form("Original_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_cut_%s.pdf", channels[i].name.c_str()));
       canvY_cut[i]->Print(Form("Original_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_cut_%s.C", channels[i].name.c_str()));
     }
     
@@ -703,6 +712,7 @@ void doMaps(bool debug, const char* dir) {
       labelY_rot.DrawLatex(0.92,0.875, (entry[i] + " Rot").c_str());
       
       canvY_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/efficiency_Y_rot_%s.png", channels[i].name.c_str()));
+      canvY_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/efficiency_Y_rot_%s.pdf", channels[i].name.c_str()));
       canvY_rot[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/efficiency_Y_rot_%s.C", channels[i].name.c_str()));
     }
 
@@ -726,6 +736,7 @@ void doMaps(bool debug, const char* dir) {
       labelY_rot_cut.DrawLatex(0.92,0.875, (entry[i] + " Cut & Rot").c_str());
       
       canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_rot_cut_%s.png", channels[i].name.c_str()));
+      canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_rot_cut_%s.pdf", channels[i].name.c_str()));
       canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/efficiency_Y_rot_cut_%s.C", channels[i].name.c_str()));
     }
     // ******** Y EFFICIENCY CUT ROTATED SPECIAL BINS ********
@@ -760,6 +771,7 @@ void doMaps(bool debug, const char* dir) {
       labelY_rot_cut_nbins.DrawLatex(0.5, 0.3, label.c_str());
 
       canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/Special_Bins/%s.png", my_name.c_str()));
+      canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/Special_Bins/%s.pdf", my_name.c_str()));
       canvY_rot_cut[i]->Print(Form("Rotated_Images/Efficiency_Maps_Y/No_Crud/Special_Bins/%s.C", my_name.c_str()));
     }
 
@@ -775,6 +787,7 @@ void doMaps(bool debug, const char* dir) {
       label_denomX.DrawLatex(0.92,0.875, (entry[i] + Form("X Denominator rot & cut")).c_str());
       gPad->Modified();
       canvdenX_rot_cut[i]->Print(Form("Denominator_Plots/denom_X_rot_cut_%s.png", channels[i].name.c_str()));
+      canvdenX_rot_cut[i]->Print(Form("Denominator_Plots/denom_X_rot_cut_%s.pdf", channels[i].name.c_str()));
       
       canvdenY_rot_cut[i] = new TCanvas(TString(Form("denY_%s", ((channels[i].name + "_rot").c_str()))).ReplaceAll("-","_").Data(), "", 500, 500);
       hist_denY_rot_cut[i]->Draw();
@@ -785,6 +798,7 @@ void doMaps(bool debug, const char* dir) {
       label_denomY.DrawLatex(0.92,0.875, (entry[i] + Form("Y Denominator rot & cut")).c_str());
       gPad->Modified();
       canvdenY_rot_cut[i]->Print(Form("Denominator_Plots/denom_Y_rot_cut_%s.png", channels[i].name.c_str()));
+      canvdenY_rot_cut[i]->Print(Form("Denominator_Plots/denom_Y_rot_cut_%s.pdf", channels[i].name.c_str()));
     }
 
     // ******* PRINT PEDESTAL *******
@@ -803,6 +817,7 @@ void doMaps(bool debug, const char* dir) {
       label_pedX.DrawLatex(0.5,0.3, (entry[i] + Form(" X Ped rot & cut")).c_str());
       gPad->Modified();
       canvpedX_rot_cut[i]->Print(Form("Pedestal_Plots/ped_X_rot_cut_%s.png", channels[i].name.c_str()));
+      canvpedX_rot_cut[i]->Print(Form("Pedestal_Plots/ped_X_rot_cut_%s.pdf", channels[i].name.c_str()));
       
       canvpedY_rot_cut[i] = new TCanvas(TString(Form("pedY_%s", ((channels[i].name + "_rot").c_str()))).ReplaceAll("-","_").Data(), "", 500, 500);
       
@@ -814,6 +829,7 @@ void doMaps(bool debug, const char* dir) {
       label_pedY.DrawLatex(0.5,0.3, (entry[i] + Form(" Y Ped rot & cut")).c_str());
       gPad->Modified();
       canvpedY_rot_cut[i]->Print(Form("Pedestal_Plots/ped_Y_rot_cut_%s.png", channels[i].name.c_str()));
+      canvpedY_rot_cut[i]->Print(Form("Pedestal_Plots/ped_Y_rot_cut_%s.pdf", channels[i].name.c_str()));
     }
 
   
@@ -849,10 +865,12 @@ void doMaps(bool debug, const char* dir) {
     gPad->Update();
     if (center) {
       canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins_centered.png");
+      canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins_centered.pdf");
       canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins_centered.C");
     }
     else {
       canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins.png");
+      canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins.pdf");
       canv_allfingersX->Print("Overlayed_Plots/Overlayed_Finger_XEff_nbins.C");
     }
 
@@ -885,6 +903,7 @@ void doMaps(bool debug, const char* dir) {
     // Now update
     gPad->Update();
     canv_allfingersY->Print("Overlayed_Plots/Overlayed_Finger_YEff_nbins.png");
+    canv_allfingersY->Print("Overlayed_Plots/Overlayed_Finger_YEff_nbins.pdf");
     canv_allfingersY->Print("Overlayed_Plots/Overlayed_Finger_YEff_nbins.C");
 
     // ******* OVERLAYED SIGMAS Y BINS ********
@@ -915,6 +934,7 @@ void doMaps(bool debug, const char* dir) {
     // Now update
     gPad->Update();
     canv_allsigsY->Print("Overlayed_Plots/Overlayed_Sigmas_YEff_nbins.png");
+    canv_allsigsY->Print("Overlayed_Plots/Overlayed_Sigmas_YEff_nbins.pdf");
     canv_allsigsY->Print("Overlayed_Plots/Overlayed_Sigmas_YEff_nbins.C");
     
     // ******* OVERLAYED SIGMAS X BINS *******
@@ -943,6 +963,7 @@ void doMaps(bool debug, const char* dir) {
     // Now update
     gPad->Update();
     canv_allsigsX->Print("Overlayed_Plots/Overlayed_Sigmas_XEff_nbins.png");
+    canv_allsigsX->Print("Overlayed_Plots/Overlayed_Sigmas_XEff_nbins.pdf");
     canv_allsigsX->Print("Overlayed_Plots/Overlayed_Sigmas_XEff_nbins.C");
   }
   
@@ -964,6 +985,7 @@ void doMaps(bool debug, const char* dir) {
       // Now update
       gPad->Update();
       canv_noiseY[i]->Print(Form( "Noise_Plots/noiseY_%s.png", channels[i].name.c_str()));
+      canv_noiseY[i]->Print(Form( "Noise_Plots/noiseY_%s.pdf", channels[i].name.c_str()));
       delete canv_noiseY[i];
     }
   }
@@ -984,6 +1006,7 @@ void doMaps(bool debug, const char* dir) {
       label_testX.DrawLatex( 0.92, 0.875, entry[i].c_str());
 
       canvT_Xrot[i] -> Print( Form( "Crud_test/crud_Xtest%s.png", channels[i].name.c_str()));
+      canvT_Xrot[i] -> Print( Form( "Crud_test/crud_Xtest%s.pdf", channels[i].name.c_str()));
       
       canvT_Yrot[i] = new TCanvas(TString(Form("YTEST_%s", channels[i].name.c_str())).ReplaceAll("-","_").Data(),
 				  "",500,500);
@@ -999,6 +1022,7 @@ void doMaps(bool debug, const char* dir) {
       label_testY.DrawLatex( 0.92, 0.875, entry[i].c_str());
       
       canvT_Yrot[i] -> Print( Form( "Crud_test/crud_Ytest%s.png", channels[i].name.c_str()));
+      canvT_Yrot[i] -> Print( Form( "Crud_test/crud_Ytest%s.pdf", channels[i].name.c_str()));
     }
   }
   
@@ -1190,6 +1214,7 @@ void doEnergyTS(bool debug, const char* dir) {
 				       hist_en[i]->GetMeanError()));
       
       canv[i]->Print(Form("Energy_Plots/energy_PS_%s.png", channels[i].name.c_str()));
+      canv[i]->Print(Form("Energy_Plots/energy_PS_%s.pdf", channels[i].name.c_str()));
       canv[i]->Print(Form("Energy_Plots/energy_PS_%s.C", channels[i].name.c_str()));
       delete canv[i];
     }
@@ -1223,6 +1248,7 @@ void doEnergyTS(bool debug, const char* dir) {
       
       canv_bins[i]->Modified();
       canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.pdf", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
       canv_bins[i]->Print(Form("Energy_Plots/energy_PS_bins_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
       delete canv_bins[i];
     }
@@ -1257,6 +1283,7 @@ void doEnergyTS(bool debug, const char* dir) {
       
       canv_ped[i]->Modified();
       canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.png", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
+      canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.pdf", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
       canv_ped[i]->Print(Form("Energy_Plots/energy_PS_ped_%s.C", TString(channels[i].name.c_str()).ReplaceAll("-","_").Data()));
       delete canv_ped[i];
     } // if (ped)
@@ -1279,6 +1306,7 @@ void doEnergyTS(bool debug, const char* dir) {
     leg_allped->Draw();
     
     canv_allped->Print("Overlayed_Plots/energyPS_all_ped.png");
+    canv_allped->Print("Overlayed_Plots/energyPS_all_ped.pdf");
   }
 
   if (time_slice) {
@@ -1342,6 +1370,7 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_ts[max_index]->Draw("axis,same");
     
     canv_ts->Print("Time_Slice_Plots/ts.png");
+    canv_ts->Print("Time_Slice_Plots/ts.pdf");
     canv_ts->Print("Time_Slice_Plots/ts.C");
     delete canv_ts;
     
@@ -1358,6 +1387,7 @@ void doEnergyTS(bool debug, const char* dir) {
     hist_tsF[max_indexF]->Draw("axis,same");
     
     canv_tsF->Print("Time_Slice_Plots/tsF.png");
+    canv_tsF->Print("Time_Slice_Plots/tsF.pdf");
     canv_tsF->Print("Time_Slice_Plots/tsF.C");
     delete canv_tsF;
   }
